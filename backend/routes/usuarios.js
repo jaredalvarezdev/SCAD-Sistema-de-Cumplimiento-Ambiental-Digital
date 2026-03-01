@@ -1,47 +1,34 @@
 const express = require('express')
 const router = express.Router()
+const usuariosController = require('../controllers/usuariosController')
+const jwt = require('jsonwebtoken')
 
-const supabase = require('../config/supabase')
+// Middleware para rutas protegidas
+const verificarToken = (req, res, next) => {
+  const authHeader = req.headers['authorization']
+  if (!authHeader) return res.status(401).json({ mensaje: "Token no proporcionado" })
+  const token = authHeader.split(' ')[1]
+  if (!token) return res.status(401).json({ mensaje: "Token inválido" })
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    req.user = decoded
+    next()
+  } catch (err) {
+    return res.status(403).json({ mensaje: "Token inválido o expirado" })
+  }
+}
 
-// Obtener usuarios
-router.get('/', async (req, res) => {
+/* ---------------- RUTAS ---------------- */
+// Crear usuario (y empresa si aplica)
+router.post('/', usuariosController.registrarUsuario)
 
-    const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
+// Login
+router.post('/login', usuariosController.login)
 
-    if (error) {
-        return res.status(500).json(error)
-    }
+// Solicitar código de recuperación
+router.post('/recuperar', usuariosController.solicitarRecuperacion)
 
-    res.json(data)
-})
-
-
-// Crear usuario
-router.post('/', async (req, res) => {
-
-    const { nombre, email, password, rol_id } = req.body
-
-    const { data, error } = await supabase
-        .from('usuarios')
-        .insert([
-            {
-                nombre,
-                email,
-                password,
-                rol_id
-            }
-        ])
-
-    if (error) {
-        return res.status(500).json(error)
-    }
-
-    res.json({
-        mensaje: "Usuario creado",
-        data
-    })
-})
+// Cambiar contraseña
+router.post('/cambiar', usuariosController.cambiarContrasena)
 
 module.exports = router

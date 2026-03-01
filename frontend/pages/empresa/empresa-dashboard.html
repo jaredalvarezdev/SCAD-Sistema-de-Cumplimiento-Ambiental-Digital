@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empresa Dashboard | SCAD</title>
+
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/empresa-dashboard.css">
+</head>
+
+<body>
+
+  <div class="dashboard">
+
+    <!-- ============================= -->
+    <!-- SIDEBAR -->
+    <!-- ============================= -->
+
+    <aside class="sidebar">
+
+      <div class="sidebar-header">
+        <span class="logo">SCAD</span>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active">Dashboard</a>
+        <a href="mis-reportes.html" class="menu-item">Mis Reportes</a>
+        <a href="generar-pdf.html" class="menu-item">Generar PDF</a>
+        <a href="evidencias.html" class="menu-item">Evidencias</a>
+        <a href="notificaciones.html" class="menu-item">Notificaciones</a>
+        <a href="perfil-empresa.html" class="menu-item">Mi Perfil</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn">Cerrar sesión</button>
+      </div>
+
+    </aside>
+
+
+    <!-- ============================= -->
+    <!-- MAIN -->
+    <!-- ============================= -->
+
+    <main class="main">
+
+      <!-- ============================= -->
+      <!-- TOPBAR -->
+      <!-- ============================= -->
+
+      <header class="topbar">
+
+        <div>
+          <h2>Dashboard Empresa</h2>
+          <p class="subtitle">
+            Panel de gestión de reportes y evidencias
+          </p>
+        </div>
+
+        <div class="topbar-actions">
+
+          <!-- CAMPANA -->
+          <div class="notification-container">
+
+            <div class="notification-icon" id="notificationToggle">
+              🔔
+              <span class="notification-badge" id="notiCount">0</span>
+            </div>
+
+            <div class="notification-dropdown" id="notificationDropdown">
+              <h4>Notificaciones</h4>
+              <ul id="notificationList">
+                <!-- JS insertará notificaciones aquí -->
+              </ul>
+
+              <a href="notificaciones.html" class="view-all">
+                Ver todas
+              </a>
+            </div>
+
+          </div>
+
+          <!-- NOMBRE EMPRESA -->
+          <div class="user-info">
+            <span id="nombreEmpresa"></span>
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- ============================= -->
+      <!-- CARDS -->
+      <!-- ============================= -->
+
+      <section class="cards">
+
+        <div class="card">
+          <h3>Reportes Pendientes</h3>
+          <p class="card-number" id="reportesPendientes">0</p>
+        </div>
+
+        <div class="card">
+          <h3>Reportes Aprobados</h3>
+          <p class="card-number" id="reportesAprobados">0</p>
+        </div>
+
+        <div class="card">
+          <h3>Reportes Rechazados</h3>
+          <p class="card-number" id="reportesRechazados">0</p>
+        </div>
+
+        <div class="card">
+          <h3>Total Evidencias</h3>
+          <p class="card-number" id="totalEvidencias">0</p>
+        </div>
+
+      </section>
+
+
+      <!-- ============================= -->
+      <!-- TABLA -->
+      <!-- ============================= -->
+
+      <section class="table-section">
+
+        <h3>Últimos Reportes</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+
+          <tbody id="tablaReportes">
+            <!-- JS cargará aquí los reportes -->
+          </tbody>
+        </table>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="../../js/empresa-dashboard.js"></script>
+
+</body>
+</html>

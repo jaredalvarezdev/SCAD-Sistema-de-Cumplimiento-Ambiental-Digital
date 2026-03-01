@@ -1,0 +1,299 @@
+/* ============================= */
+/* EMPRESA DASHBOARD PRO */
+/* ============================= */
+
+/* Fondo principal */
+.main {
+  background: linear-gradient(to bottom, #f8fafc, #eef4ff);
+}
+
+/* ============================= */
+/* TOPBAR EMPRESA */
+/* ============================= */
+
+.topbar {
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.user-info {
+  background: white;
+  padding: 8px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+/* ============================= */
+/* CAMPANA NOTIFICACIONES */
+/* ============================= */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.notification-container {
+  position: relative;
+}
+
+.notification-icon {
+  cursor: pointer;
+  font-size: 20px;
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+.notification-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 35px;
+  width: 260px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  padding: 15px;
+  z-index: 100;
+}
+
+.notification-dropdown.show {
+  display: block;
+}
+
+.notification-dropdown h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.notification-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-dropdown li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.notification-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.view-all {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.view-all:hover {
+  text-decoration: underline;
+}
+
+/* ============================= */
+/* CARDS EMPRESA */
+/* ============================= */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  transition: 0.3s ease;
+}
+
+/* Barra lateral azul */
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+  background: linear-gradient(
+    to bottom,
+    #1e3a8a,
+    #3b82f6
+  );
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+}
+
+.card h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #334155;
+}
+
+.card-number {
+  font-size: 34px;
+  font-weight: 800;
+  margin-top: 8px;
+  color: #1e3a8a;
+}
+
+/* Animación entrada */
+.card {
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================= */
+/* TABLA EMPRESA */
+/* ============================= */
+
+.table-section {
+  margin-top: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+}
+
+.table-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.table-section table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-section table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: #f1f5f9;
+}
+
+.table-section table td {
+  font-size: 14px;
+}
+
+.table-section tr:hover {
+  background: rgba(59, 130, 246, 0.07);
+  transition: 0.2s;
+}
+
+/* ============================= */
+/* BADGES DE ESTADO (opcional futuro JS) */
+/* ============================= */
+
+.estado-pendiente {
+  background: #facc15;
+  color: #854d0e;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.estado-aprobado {
+  background: #22c55e;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.estado-rechazado {
+  background: #ef4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================= */
+/* BOTÓN LOGOUT */
+/* ============================= */
+
+#logoutBtn {
+  background: #1e3a8a;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#logoutBtn:hover {
+  background: #172554;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3);
+}
+
+/* ============================= */
+/* SIDEBAR ACTIVO EMPRESA */
+/* ============================= */
+
+.menu-item.active {
+  box-shadow: inset 4px 0 0 #3b82f6;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .user-info {
+    align-self: flex-end;
+  }
+
+  .card-number {
+    font-size: 26px;
+  }
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuario Dashboard | SCAD</title>
+
+<link rel="stylesheet" href="../../css/dashboard.css">
+<!-- CSS ESPECÍFICO USUARIO -->
+<link rel="stylesheet" href="../../css/usuario-dashboard.css">
+
+</head>
+<body>
+
+<div class="dashboard">
+
+  <!-- ============================= -->
+  <!-- SIDEBAR -->
+  <!-- ============================= -->
+
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+      <span class="logo">SCAD</span>
+    </div>
+
+    <nav class="sidebar-menu">
+
+      <a href="#" class="menu-item active">
+        Dashboard
+      </a>
+
+      <a href="reportes.html" class="menu-item">
+        Mis Reportes
+      </a>
+
+      <a href="comentarios.html" class="menu-item">
+        Comentarios
+      </a>
+
+      <a href="evidencias.html" class="menu-item">
+        Evidencias
+      </a>
+
+      <a href="notificaciones.html" class="menu-item">
+        Notificaciones
+      </a>
+
+      <a href="perfil-usuario.html" class="menu-item">
+        Mi Perfil
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="logoutBtn">
+        Cerrar sesión
+      </button>
+    </div>
+
+  </aside>
+
+
+  <!-- ============================= -->
+  <!-- MAIN -->
+  <!-- ============================= -->
+
+  <main class="main">
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+      <div>
+        <h2>Dashboard Usuario</h2>
+        <p class="subtitle">
+          Gestiona tus reportes y evidencias asignadas
+        </p>
+      </div>
+
+      <div class="user-info">
+        <span id="nombreUsuario"></span>
+      </div>
+
+    </header>
+
+
+    <!-- CARDS -->
+
+    <section class="cards">
+
+      <div class="card">
+        <h3>Reportes Asignados</h3>
+        <p class="card-number" id="reportesAsignados">0</p>
+      </div>
+
+      <div class="card">
+        <h3>Reportes Completados</h3>
+        <p class="card-number" id="reportesCompletados">0</p>
+      </div>
+
+      <div class="card">
+        <h3>Evidencias Subidas</h3>
+        <p class="card-number" id="evidenciasSubidas">0</p>
+      </div>
+
+      <div class="card">
+        <h3>Notificaciones Nuevas</h3>
+        <p class="card-number" id="notificacionesNuevas">0</p>
+      </div>
+
+    </section>
+
+
+    <!-- TABLA -->
+
+    <section class="table-section">
+
+      <h3>Mis Reportes Recientes</h3>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Empresa</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody id="tablaReportes">
+          <!-- JS cargará los datos aquí -->
+        </tbody>
+
+      </table>
+
+    </section>
+
+
+  </main>
+
+</div>
+
+<script src="../../js/usuario-dashboard.js"></script>
+
+</body>
+</html>

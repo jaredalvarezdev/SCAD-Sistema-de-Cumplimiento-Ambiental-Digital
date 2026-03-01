@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión | SCAD</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="login-container">
+
+  <div class="login-card">
+
+    <div class="logo">SCAD</div>
+    <h2>Iniciar sesión</h2>
+
+    <form id="loginForm">
+
+      <div class="input-group">
+        <label>Correo electrónico</label>
+        <input type="email" name="email" required>
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" name="password" required>
+      </div>
+
+      <div class="login-options">
+        <label class="remember">
+          <input type="checkbox"> Recordarme
+        </label>
+        <a href="#">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Iniciar sesión
+      </button>
+
+    </form>
+
+    <div class="divider">
+      <span>O continuar con</span>
+    </div>
+
+    <div class="social-buttons">
+      <button class="btn-social">Google</button>
+      <button class="btn-social">GitHub</button>
+    </div>
+
+    <p class="bottom-text">
+      ¿No tienes cuenta?
+      <a href="register.html">Crear cuenta</a>
+    </p>
+
+  </div>
+
+</div>
+
+<script src="../js/auth.js"></script>
+</body>
+</html>

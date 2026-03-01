@@ -1,0 +1,221 @@
+/* ============================= */
+/* USUARIO DASHBOARD PRO */
+/* ============================= */
+
+/* Fondo principal BLANCO como empresa y admin */
+.main {
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 25px;
+}
+
+/* ============================= */
+/* TOPBAR */
+/* ============================= */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.user-info {
+  background: white;
+  padding: 8px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+/* ============================= */
+/* GRID CARDS */
+/* ============================= */
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* ============================= */
+/* CARDS */
+/* ============================= */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  transition: 0.3s ease;
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+/* Barra lateral naranja */
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 6px;
+  background: linear-gradient(
+    to bottom,
+    #c2410c,
+    #fb923c
+  );
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(234, 88, 12, 0.25);
+}
+
+.card h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7c2d12;
+}
+
+.card-number {
+  font-size: 34px;
+  font-weight: 800;
+  margin-top: 8px;
+  color: #ea580c;
+}
+
+/* Animación escalonada */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================= */
+/* TABLA */
+/* ============================= */
+
+.table-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+}
+
+.table-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.table-section table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-section table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: #fff7ed;
+  padding: 12px;
+  text-align: left;
+}
+
+.table-section table td {
+  font-size: 14px;
+  padding: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.table-section tr:hover {
+  background: rgba(251, 146, 60, 0.08);
+  transition: 0.2s;
+}
+
+/* ============================= */
+/* BOTÓN LOGOUT */
+/* ============================= */
+
+#logoutBtn {
+  background: #ea580c;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#logoutBtn:hover {
+  background: #c2410c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(234, 88, 12, 0.35);
+}
+
+/* ============================= */
+/* SIDEBAR ACTIVO */
+/* ============================= */
+
+.menu-item.active {
+  box-shadow: inset 4px 0 0 #fb923c;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 768px) {
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .user-info {
+    align-self: flex-end;
+  }
+
+  .card-number {
+    font-size: 26px;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,307 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+:root {
+  --green-dark: #065f46;
+  --green-hover: #064e3b;
+  --green-light: #34d399;
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+
+body {
+  background: #f8fafc;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* PANEL IZQUIERDO */
+.left-panel {
+  width: 50%;
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.form-box {
+  width: 100%;
+  max-width: 500px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 20px;
+}
+
+h1 {
+  color: var(--text-dark);
+  margin-bottom: 5px;
+}
+
+.highlight {
+  color: var(--green-light);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Selector tipo */
+.tipo-usuario-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.tipo-usuario {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+.tipo-usuario.active {
+  background: var(--green-dark);
+  color: white;
+  border-color: var(--green-dark);
+}
+
+/* GRID 2 columnas */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+/* Inputs */
+input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--green-dark);
+  box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.1);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Botón */
+button {
+  width: 100%;
+  padding: 12px;
+  background: var(--green-dark);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: var(--green-hover);
+}
+
+/* Texto inferior */
+.bottom-text {
+  margin-top: 15px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bottom-text a {
+  color: var(--green-dark);
+  text-decoration: none;
+}
+
+/* PANEL DERECHO */
+.right-panel {
+  width: 50%;
+  background: var(--green-dark);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.highlight-light {
+  color: var(--green-light);
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+/* ========================= */
+/* LOGIN ESTILO CARD CENTRADA */
+/* ========================= */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(6, 95, 70, 0.08);
+  border: 1px solid var(--border);
+}
+
+.login-card h2 {
+  text-align: center;
+  color: var(--text-dark);
+  margin-bottom: 25px;
+}
+
+/* Input group */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+}
+
+/* Opciones */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+.login-options a {
+  color: var(--green-dark);
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.login-options a:hover {
+  color: var(--green-hover);
+}
+
+/* Botón principal */
+.btn-primary {
+  width: 100%;
+}
+
+/* Divider estilo moderno */
+.login-card .divider {
+  position: relative;
+  text-align: center;
+  margin: 25px 0;
+  height: auto;
+  background: none;
+}
+
+.login-card .divider span {
+  background: white;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-card .divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  z-index: -1;
+}
+
+/* Social buttons */
+.social-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-social {
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-dark);
+}
+
+.btn-social:hover {
+  background: #f1f5f9;
+}
+
+/* Ajuste checkbox */
+.remember input {
+  width: auto;
+  margin-right: 5px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    height: 50%;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

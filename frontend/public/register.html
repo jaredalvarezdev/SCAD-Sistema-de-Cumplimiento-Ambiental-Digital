@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro SCAD</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- PANEL IZQUIERDO -->
+    <div class="left-panel">
+
+      <div class="form-box">
+
+        <div class="logo">SCAD</div>
+
+        <h1>Crear cuenta en <span class="highlight">SCAD</span></h1>
+        <p class="subtitle">Regístrate y comienza a gestionar tu empresa</p>
+
+        <!-- Selector -->
+        <div class="tipo-usuario-container">
+          <div class="tipo-usuario active" data-tipo="usuario">
+            Solo Usuario
+          </div>
+          <div class="tipo-usuario" data-tipo="empresa">
+            Usuario + Empresa
+          </div>
+        </div>
+
+        <!-- Formulario -->
+        <form id="registerForm">
+
+          <!-- GRID USUARIO -->
+          <div class="grid-2">
+            <input type="text" name="nombre" placeholder="Nombre completo" required>
+            <input type="email" name="email" placeholder="Correo electrónico" required>
+
+            <input type="password" name="password" placeholder="Contraseña" class="full-width" required>
+          </div>
+
+          <!-- GRID EMPRESA -->
+          <div id="empresaFields" class="hidden">
+
+            <div class="divider"></div>
+
+            <div class="grid-2">
+              <input type="text" name="empresa_nombre" placeholder="Nombre empresa">
+              <input type="text" name="empresa_rfc" placeholder="RFC">
+              <input type="text" name="empresa_telefono" placeholder="Teléfono">
+              <input type="text" name="empresa_direccion" placeholder="Dirección">
+            </div>
+
+          </div>
+
+          <input type="hidden" id="rol_id" name="rol_id" value="3">
+
+          <button type="submit">Crear cuenta</button>
+
+        </form>
+
+        <p class="bottom-text">
+          ¿Ya tienes cuenta?
+          <a href="login.html">Inicia sesión</a>
+        </p>
+
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="right-panel">
+      <div class="right-content">
+        <h2>Bienvenido a <span class="highlight-light">SCAD</span></h2>
+        <p>Sistema de Control Administrativo Digital</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../js/auth.js"></script>
+</body>
+
+</html>
