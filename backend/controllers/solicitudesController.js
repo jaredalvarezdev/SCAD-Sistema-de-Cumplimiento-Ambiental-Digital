@@ -1,11 +1,14 @@
 const supabase = require('../config/supabase')
 
-// Listar solicitudes de unión pendientes de la empresa (solo admin/propietario)
+/* ---------------- LISTAR SOLICITUDES ---------------- */
 const listarSolicitudes = async (req, res) => {
   try {
     const empresaId = Number(req.params.id)
 
-    if (req.user.rol_id !== 1 && Number(req.user.empresa_id) !== empresaId) {
+    if (
+      req.user.rol_id !== 1 &&
+      Number(req.user.empresa_id) !== empresaId
+    ) {
       return res.status(403).json({ mensaje: 'No autorizado' })
     }
 
@@ -14,65 +17,108 @@ const listarSolicitudes = async (req, res) => {
       .select('id, usuario_id, estado, creado_en')
       .eq('empresa_id', empresaId)
       .eq('estado', 'pendiente')
+      .order('creado_en', { ascending: false })
 
     if (error) return res.status(500).json({ mensaje: error.message })
+
     res.json(data)
+
   } catch (err) {
+    console.error(err)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }
 
-// Aceptar solicitud de unión
+/* ---------------- ACEPTAR SOLICITUD ---------------- */
 const aceptarSolicitud = async (req, res) => {
   try {
-    const { empresa_id, solicitud_id } = req.params
+    const empresa_id = Number(req.params.empresa_id)
+    const solicitud_id = Number(req.params.solicitud_id)
 
-    if (req.user.rol_id !== 1 && Number(req.user.empresa_id) !== Number(empresa_id)) {
+    if (
+      req.user.rol_id !== 1 &&
+      Number(req.user.empresa_id) !== empresa_id
+    ) {
       return res.status(403).json({ mensaje: 'No autorizado' })
     }
 
     const { data: solicitud, error } = await supabase
       .from('solicitudes_union')
       .select('*')
-      .eq('id', Number(solicitud_id))
+      .eq('id', solicitud_id)
+      .eq('empresa_id', empresa_id)
       .single()
 
-    if (error || !solicitud) return res.status(404).json({ mensaje: 'Solicitud no encontrada' })
+    if (error || !solicitud)
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' })
 
-    // Asignar empresa al usuario
-    await supabase
+    if (solicitud.estado !== 'pendiente')
+      return res.status(400).json({ mensaje: 'La solicitud ya fue procesada' })
+
+    // Actualizar usuario
+    const { error: errorUsuario } = await supabase
       .from('usuarios')
-      .update({ empresa_id: Number(empresa_id) })
+      .update({ empresa_id })
       .eq('id', solicitud.usuario_id)
 
+    if (errorUsuario)
+      return res.status(400).json({ mensaje: errorUsuario.message })
+
     // Marcar solicitud como aceptada
-    await supabase
+    const { error: errorSolicitud } = await supabase
       .from('solicitudes_union')
       .update({ estado: 'aceptada' })
-      .eq('id', Number(solicitud_id))
+      .eq('id', solicitud_id)
+
+    if (errorSolicitud)
+      return res.status(400).json({ mensaje: errorSolicitud.message })
 
     res.json({ mensaje: 'Solicitud aceptada correctamente' })
+
   } catch (err) {
+    console.error(err)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }
 
-// Rechazar solicitud de unión
+/* ---------------- RECHAZAR SOLICITUD ---------------- */
 const rechazarSolicitud = async (req, res) => {
   try {
-    const { empresa_id, solicitud_id } = req.params
+    const empresa_id = Number(req.params.empresa_id)
+    const solicitud_id = Number(req.params.solicitud_id)
 
-    if (req.user.rol_id !== 1 && Number(req.user.empresa_id) !== Number(empresa_id)) {
+    if (
+      req.user.rol_id !== 1 &&
+      Number(req.user.empresa_id) !== empresa_id
+    ) {
       return res.status(403).json({ mensaje: 'No autorizado' })
     }
 
-    await supabase
+    const { data: solicitud } = await supabase
+      .from('solicitudes_union')
+      .select('estado')
+      .eq('id', solicitud_id)
+      .eq('empresa_id', empresa_id)
+      .single()
+
+    if (!solicitud)
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' })
+
+    if (solicitud.estado !== 'pendiente')
+      return res.status(400).json({ mensaje: 'La solicitud ya fue procesada' })
+
+    const { error } = await supabase
       .from('solicitudes_union')
       .update({ estado: 'rechazada' })
-      .eq('id', Number(solicitud_id))
+      .eq('id', solicitud_id)
+
+    if (error)
+      return res.status(400).json({ mensaje: error.message })
 
     res.json({ mensaje: 'Solicitud rechazada correctamente' })
+
   } catch (err) {
+    console.error(err)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }

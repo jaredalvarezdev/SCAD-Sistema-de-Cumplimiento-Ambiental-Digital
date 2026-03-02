@@ -7,12 +7,15 @@ const crearReporte = async (req, res) => {
     const { titulo, descripcion } = req.body
     const { id, empresa_id, rol_id } = req.user
 
-    // Solo empresas pueden crear reportes
-    if (rol_id !== 2) return res.status(403).json({ mensaje: 'Solo las empresas pueden crear reportes' })
+    if (rol_id !== 2)
+      return res.status(403).json({ mensaje: 'Solo las empresas pueden crear reportes' })
 
-    if (!titulo || !descripcion) return res.status(400).json({ mensaje: 'Faltan campos obligatorios' })
+    if (!titulo || !descripcion)
+      return res.status(400).json({ mensaje: 'Faltan campos obligatorios' })
 
-    // Validación con IA
+    if (descripcion.length < 20)
+      return res.status(400).json({ mensaje: 'La descripción es demasiado corta' })
+
     const resultadoIA = await validarReporteIA(descripcion)
 
     const { data, error } = await supabase
@@ -22,11 +25,14 @@ const crearReporte = async (req, res) => {
         descripcion,
         usuario_id: id,
         empresa_id,
-        estado_id: 1, // estado inicial
+        estado_id: 1,
         validacion_ia: resultadoIA.observacion,
-        confianza_ia: resultadoIA.confianza
+        confianza_ia: resultadoIA.confianza,
+        modelo_ia: 'deepseek-v1',
+        fecha_validacion_ia: new Date()
       }])
       .select()
+      .single()
 
     if (error) return res.status(400).json(error)
 
@@ -37,25 +43,47 @@ const crearReporte = async (req, res) => {
     })
 
   } catch (error) {
+    console.error(error)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }
 
-/* ---------------- LISTAR REPORTES ---------------- */
+/* ---------------- LISTAR REPORTES (CON PAGINACIÓN Y FILTROS) ---------------- */
 const listarReportes = async (req, res) => {
   try {
     const { rol_id, empresa_id } = req.user
+    const { estado_id, page = 1, limit = 10 } = req.query
 
-    let query = supabase.from('reportes').select('*')
+    const from = (page - 1) * limit
+    const to = from + parseInt(limit) - 1
+
+    let query = supabase
+      .from('reportes')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to)
 
     // Empresa solo ve los suyos
-    if (rol_id === 2) query = query.eq('empresa_id', empresa_id)
+    if (rol_id === 2)
+      query = query.eq('empresa_id', empresa_id)
 
-    const { data, error } = await query
+    // Filtro por estado opcional
+    if (estado_id)
+      query = query.eq('estado_id', estado_id)
+
+    const { data, error, count } = await query
+
     if (error) return res.status(400).json(error)
 
-    res.json(data)
+    res.json({
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      data
+    })
+
   } catch (error) {
+    console.error(error)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }
@@ -72,13 +100,16 @@ const verReporte = async (req, res) => {
       .eq('id', id)
       .single()
 
-    if (error || !reporte) return res.status(404).json({ mensaje: 'Reporte no encontrado' })
+    if (error || !reporte)
+      return res.status(404).json({ mensaje: 'Reporte no encontrado' })
 
     if (rol_id === 2 && reporte.empresa_id !== empresa_id)
       return res.status(403).json({ mensaje: 'No tienes acceso a este reporte' })
 
     res.json(reporte)
+
   } catch (error) {
+    console.error(error)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }
@@ -90,20 +121,38 @@ const cambiarEstadoReporte = async (req, res) => {
     const { estado_id } = req.body
     const { rol_id } = req.user
 
-    // Solo admin (1) y auditor (3)
-    if (![1, 3].includes(rol_id)) return res.status(403).json({ mensaje: 'No tienes permisos para cambiar el estado' })
-    if (!estado_id) return res.status(400).json({ mensaje: 'estado_id es obligatorio' })
+    if (![1, 3].includes(rol_id))
+      return res.status(403).json({ mensaje: 'No tienes permisos para cambiar el estado' })
+
+    if (!estado_id)
+      return res.status(400).json({ mensaje: 'estado_id es obligatorio' })
+
+    // Verificar que exista el reporte
+    const { data: reporte } = await supabase
+      .from('reportes')
+      .select('id')
+      .eq('id', id)
+      .single()
+
+    if (!reporte)
+      return res.status(404).json({ mensaje: 'Reporte no encontrado' })
 
     const { data, error } = await supabase
       .from('reportes')
       .update({ estado_id })
       .eq('id', id)
       .select()
+      .single()
 
     if (error) return res.status(400).json(error)
 
-    res.json({ mensaje: 'Estado del reporte actualizado', data })
+    res.json({
+      mensaje: 'Estado del reporte actualizado',
+      data
+    })
+
   } catch (error) {
+    console.error(error)
     res.status(500).json({ mensaje: 'Error del servidor' })
   }
 }

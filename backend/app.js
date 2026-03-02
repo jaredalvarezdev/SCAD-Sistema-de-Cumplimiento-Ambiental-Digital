@@ -1,34 +1,65 @@
-require('dotenv').config()
+require('dotenv').config();
 
-const express = require('express')
-const cors = require('cors')
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 
-const app = express() // primero se crea la app
+const app = express();
 
-const usuariosRoutes = require('./routes/usuarios.js')
-const empresasRoutes = require('./routes/empresas')
-const reportesRoutes = require('./routes/reportes')
-const evidenciasRoutes = require('./routes/evidencias')
-const comentariosRoutes = require('./routes/comentarios')
+// ----------------- Archivos estáticos -----------------
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use('/pages', express.static(path.join(__dirname, '../frontend/pages')));
+app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
+app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
+app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 
-// middlewares
-app.use(cors())
-app.use(express.json())
+// ----------------- Rutas de la API -----------------
+const usuariosRoutes = require('./routes/usuarios.js');
+const empresasRoutes = require('./routes/empresas.js');
+const reportesRoutes = require('./routes/reportes.js');
+const evidenciasRoutes = require('./routes/evidencias.js');
+const comentariosRoutes = require('./routes/comentarios.js');
+const historialRoutes = require('./routes/historial.js');
+const notificacionesRoutes = require('./routes/notificaciones.js');
 
-// rutas
-app.use('/api/usuarios', usuariosRoutes)
-app.use('/api/empresas', empresasRoutes)
-app.use('/api/reportes', reportesRoutes)
-app.use('/api/evidencias', evidenciasRoutes)
-app.use('/api/comentarios', comentariosRoutes)
+app.use(cors());
+app.use(express.json());
 
-// ruta principal
+app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/empresas', empresasRoutes);
+app.use('/api/reportes', reportesRoutes);
+app.use('/api/evidencias', evidenciasRoutes);
+app.use('/api/comentarios', comentariosRoutes);
+app.use('/api/historial', historialRoutes)
+app.use('/api/notificaciones', notificacionesRoutes)
+
+// ----------------- Rutas HTML -----------------
 app.get('/', (req, res) => {
-    res.send('SCAD Backend funcionando')
-})
+  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+});
 
-const PORT = 3000
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/login.html'));
+});
 
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/register.html'));
+});
+
+app.get('/seleccion-empresa', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/seleccion-empresa.html'));
+});
+
+app.get('/empresa-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/empresa/empresa-dashboard.html'));
+});
+
+app.get('/admin-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/admin-dashboard.html'));
+});
+
+// ----------------- Servidor -----------------
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`)
-})
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
