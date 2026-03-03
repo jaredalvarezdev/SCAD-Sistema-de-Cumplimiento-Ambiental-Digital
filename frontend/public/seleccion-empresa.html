@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seleccionar Empresa | SCAD</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="left-panel">
+
+    <div class="form-box">
+
+      <div class="logo">SCAD</div>
+      <h1>Selecciona la empresa</h1>
+      <p class="subtitle">
+        Debes elegir una empresa para solicitar acceso. Tu solicitud será revisada por el cliente principal.
+      </p>
+
+      <form id="empresaForm">
+
+        <div class="input-group">
+          <label for="empresaSelect">Empresas disponibles</label>
+          <select id="empresaSelect" required>
+            <!-- Opciones cargadas por JS -->
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary">Solicitar acceso</button>
+
+      </form>
+
+      <p class="bottom-text">
+        ¿Deseas cerrar sesión?
+        <a href="../../public/login.html">Iniciar sesión con otra cuenta</a>
+      </p>
+
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="right-content">
+      <h2>Bienvenido a <span class="highlight-light">SCAD</span></h2>
+      <p>Sistema de Control Administrativo Digital</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/seleccion-empresa.js"></script>
+</body>
+</html>

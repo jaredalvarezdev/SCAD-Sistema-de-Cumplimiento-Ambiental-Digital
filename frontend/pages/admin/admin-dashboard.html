@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard | SCAD</title>
-<link rel="stylesheet" href="../../css/dashboard.css">
-<link rel="stylesheet" href="../../css/admin-dashboard.css">
+
+<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/admin-dashboard.css">
 
 </head>
 <body>
@@ -20,145 +21,107 @@
     </div>
 
     <nav class="sidebar-menu">
-
-      <a href="#" class="menu-item active">
-        Dashboard
-      </a>
-
-      <a href="usuarios.html" class="menu-item">
-        Usuarios
-      </a>
-
-      <a href="empresas.html" class="menu-item">
-        Empresas
-      </a>
-
-      <a href="auditorias.html" class="menu-item">
-        Auditorías
-      </a>
-
-      <a href="reportes.html" class="menu-item">
-        Reportes
-      </a>
-
-      <a href="roles.html" class="menu-item">
-        Roles
-      </a>
-
-      <a href="historial.html" class="menu-item">
-        Historial
-      </a>
-
+      <a href="/admin-dashboard" class="menu-item active">Dashboard</a>
+      <a href="/pages/admin/usuarios.html" class="menu-item">Usuarios</a>
+      <a href="/pages/admin/empresas.html" class="menu-item">Empresas</a>
+      <a href="/pages/admin/auditorias.html" class="menu-item">Auditorías</a>
+      <a href="/pages/admin/reportes.html" class="menu-item">Reportes</a>
+      <a href="/pages/admin/roles.html" class="menu-item">Roles</a>
+      <a href="/pages/admin/historial.html" class="menu-item">Historial</a>
     </nav>
 
     <div class="sidebar-footer">
-
-      <button id="logoutBtn">
-        Cerrar sesión
-      </button>
-
+      <button id="logoutBtn">Cerrar sesión</button>
     </div>
 
   </aside>
-
 
   <!-- MAIN -->
   <main class="main">
 
     <!-- TOPBAR -->
     <header class="topbar">
-
       <div>
         <h2>Dashboard Administrador</h2>
-        <p class="subtitle">
-          Bienvenido al panel de control SCAD
-        </p>
+        <p class="subtitle">Bienvenido al panel de control SCAD</p>
       </div>
-
       <div class="user-info">
         <span id="nombreUsuario"></span>
       </div>
-
     </header>
-
 
     <!-- CARDS -->
     <section class="cards">
-
       <div class="card">
-
         <h3>Total Usuarios</h3>
-
-        <p class="card-number" id="totalUsuarios">
-          0
-        </p>
-
+        <p class="card-number" id="totalUsuarios">0</p>
       </div>
 
-
       <div class="card">
-
         <h3>Total Empresas</h3>
-
-        <p class="card-number" id="totalEmpresas">
-          0
-        </p>
-
+        <p class="card-number" id="totalEmpresas">0</p>
       </div>
 
-
       <div class="card">
-
         <h3>Total Reportes</h3>
-
-        <p class="card-number" id="totalReportes">
-          0
-        </p>
-
+        <p class="card-number" id="totalReportes">0</p>
       </div>
-
 
       <div class="card">
-
         <h3>Total Auditorías</h3>
-
-        <p class="card-number" id="totalAuditorias">
-          0
-        </p>
-
+        <p class="card-number" id="totalAuditorias">0</p>
       </div>
-
     </section>
-
 
     <!-- TABLA -->
     <section class="table-section">
-
       <h3>Últimos usuarios registrados</h3>
 
       <table>
-
         <thead>
           <tr>
             <th>ID</th>
             <th>Nombre</th>
             <th>Email</th>
             <th>Rol</th>
+            <th>Activo</th>
+            <th>Acciones</th>
           </tr>
         </thead>
-
-        <tbody id="tablaUsuarios">
-
-        </tbody>
-
+        <tbody id="tablaUsuarios"></tbody>
       </table>
-
     </section>
-
 
   </main>
 
 </div>
+
+<!-- ================= MODAL GLOBAL ================= -->
+
+<div id="modalGlobal" class="modal-pro">
+
+  <div class="modal-panel">
+
+    <div class="modal-header-pro">
+      <div class="modal-icon-pro">⚙️</div>
+      <div>
+        <h3 id="modalTitulo"></h3>
+        <p id="modalSubtitulo"></p>
+      </div>
+    </div>
+
+    <div class="modal-body-pro" id="modalContenido"></div>
+
+    <div class="modal-footer-pro">
+      <button class="btn-cancel-pro" id="btnCancelar">Cancelar</button>
+      <button class="btn-save-pro" id="btnGuardar">Confirmar</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="/js/admin-dashboard.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espera de aprobación | SCAD</title>
+  <link rel="stylesheet" href="../../css/auth.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="left-panel">
+    <div class="form-box">
+
+      <div class="logo">SCAD</div>
+      <h1>Estado de Solicitud</h1>
+
+      <!-- Mensaje dinámico -->
+      <p id="mensajeEspera" class="subtitle"></p>
+
+      <div class="actions">
+        <button id="btnVolver" class="btn-primary">Cerrar sesión</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="right-content">
+      <h2>Bienvenido a <span class="highlight-light">SCAD</span></h2>
+      <p>Sistema de Control Administrativo Digital</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const mensajeEl = document.getElementById('mensajeEspera');
+
+  // Si viene desde selección de empresa
+  if (localStorage.getItem('solicitudEnviada') === 'true') {
+    mensajeEl.textContent = 
+      "Tu solicitud fue enviada correctamente. El cliente principal debe aprobar tu acceso.";
+    
+    localStorage.removeItem('solicitudEnviada');
+  } else {
+    mensajeEl.textContent = 
+      "Tu solicitud está en proceso de revisión. Debes esperar aprobación para continuar.";
+  }
+
+  // Cerrar sesión
+  document.getElementById('btnVolver').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    window.location.href = '/login';
+  });
+</script>
+
+</body>
+</html>

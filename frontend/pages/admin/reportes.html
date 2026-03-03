@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes | SCAD</title>
+<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header"><span class="logo">SCAD</span></div>
+    <nav class="sidebar-menu">
+      <a href="admin-dashboard.html" class="menu-item">Dashboard</a>
+      <a href="usuarios.html" class="menu-item">Usuarios</a>
+      <a href="empresas.html" class="menu-item">Empresas</a>
+      <a href="auditorias.html" class="menu-item">Auditorías</a>
+      <a href="#" class="menu-item active">Reportes</a>
+      <a href="roles.html" class="menu-item">Roles</a>
+      <a href="historial.html" class="menu-item">Historial</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h2>Reportes</h2>
+        <p class="subtitle">Gestión de reportes generados</p>
+      </div>
+      <div class="user-info"><span id="nombreUsuario"></span></div>
+    </header>
+
+    <section class="table-section">
+      <h3>Listado de reportes</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Fecha</th>
+            <th>Empresa</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaReportes">
+          <!-- Aquí se llenarán los reportes vía JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

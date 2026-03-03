@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuarios | SCAD</title>
+
+<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/admin-dashboard.css">
+
+</head>
+<body>
+
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+      <span class="logo">SCAD</span>
+    </div>
+
+    <nav class="sidebar-menu">
+      <a href="/admin-dashboard" class="menu-item">Dashboard</a>
+      <a href="/pages/admin/usuarios.html" class="menu-item active">Usuarios</a>
+      <a href="/pages/admin/empresas.html" class="menu-item">Empresas</a>
+      <a href="/pages/admin/auditorias.html" class="menu-item">Auditorías</a>
+      <a href="/pages/admin/reportes.html" class="menu-item">Reportes</a>
+      <a href="/pages/admin/roles.html" class="menu-item">Roles</a>
+      <a href="/pages/admin/historial.html" class="menu-item">Historial</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h2>Usuarios</h2>
+        <p class="subtitle">Gestión de usuarios del sistema</p>
+      </div>
+      <div class="user-info">
+        <span id="nombreUsuario"></span>
+      </div>
+    </header>
+
+
+    <!-- TABLA -->
+    <section class="table-section">
+      <h3>Listado completo de usuarios</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaUsuarios">
+          <!-- JS insertará datos -->
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- ================= MODAL GLOBAL PRO ================= -->
+
+<div id="modalGlobal" class="modal-pro">
+
+  <div class="modal-panel">
+
+    <div class="modal-header-pro">
+      <div class="modal-icon-pro">⚙️</div>
+      <div>
+        <h3 id="modalTitulo"></h3>
+        <p id="modalSubtitulo"></p>
+      </div>
+    </div>
+
+    <div class="modal-body-pro" id="modalContenido"></div>
+
+    <div class="modal-footer-pro">
+      <button class="btn-cancel-pro" id="btnCancelar">Cancelar</button>
+      <button class="btn-save-pro" id="btnGuardar">Confirmar</button>
+    </div>
+
+  </div>
+
+</div>
+
+
+<script src="/js/usuarios.js"></script>
+
+</body>
+</html>

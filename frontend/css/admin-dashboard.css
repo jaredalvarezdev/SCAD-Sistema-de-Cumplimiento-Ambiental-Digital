@@ -153,6 +153,144 @@
 }
 
 /* ============================= */
+/* BOTONES ACCIONES TABLA PRO */
+/* ============================= */
+
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+
+/* Base botón */
+.acciones button {
+  border: none;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* EDITAR */
+.btn-editar {
+  background: linear-gradient(
+    135deg,
+    var(--green-light),
+    var(--green-dark)
+  );
+  color: white;
+  box-shadow: 0 4px 10px rgba(6, 95, 70, 0.2);
+}
+
+.btn-editar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(6, 95, 70, 0.3);
+}
+
+/* ELIMINAR */
+.btn-eliminar {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+}
+
+.btn-eliminar:hover {
+  background: #dc2626;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* ============================= */
+/* MODAL PRO SCAD */
+/* ============================= */
+
+.modal-pro {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-pro.active {
+  display: flex;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: modalEnter 0.25s ease;
+}
+
+.modal-header-pro {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  padding: 25px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-icon-pro {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(6, 95, 70, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green-dark);
+  font-size: 20px;
+}
+
+.modal-body-pro {
+  padding: 20px 25px;
+}
+
+.modal-footer-pro {
+  padding: 18px 25px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel-pro {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save-pro {
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: translateY(15px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================= */
 /* EFECTO ACTIVO EN SIDEBAR */
 /* ============================= */
 
