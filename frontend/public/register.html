@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro SCAD</title>
   <link rel="stylesheet" href="../css/auth.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 </head>
 
 <body>
@@ -25,9 +26,11 @@
         <!-- Selector -->
         <div class="tipo-usuario-container">
           <div class="tipo-usuario active" data-tipo="usuario">
+            <span class="material-icons-outlined">person</span>
             Solo Usuario
           </div>
           <div class="tipo-usuario" data-tipo="empresa">
+            <span class="material-icons-outlined">business</span>
             Usuario + Empresa
           </div>
         </div>
@@ -35,31 +38,72 @@
         <!-- Formulario -->
         <form id="registerForm">
 
-          <!-- GRID USUARIO -->
+          <!-- DATOS USUARIO -->
           <div class="grid-2">
-            <input type="text" name="nombre" placeholder="Nombre completo" required>
-            <input type="email" name="email" placeholder="Correo electrónico" required>
-
-            <input type="password" name="password" placeholder="Contraseña" class="full-width" required>
+            <div class="input-field">
+              <span class="material-icons-outlined">badge</span>
+              <input type="text" name="nombre" placeholder="Nombre completo" required>
+            </div>
+            <div class="input-field">
+              <span class="material-icons-outlined">email</span>
+              <input type="email" name="email" placeholder="Correo electrónico" required>
+            </div>
+            <div class="input-field full-width">
+              <span class="material-icons-outlined">lock</span>
+              <input type="password" name="password" placeholder="Contraseña" required>
+            </div>
           </div>
 
-          <!-- GRID EMPRESA -->
+          <!-- DATOS EMPRESA -->
           <div id="empresaFields" class="hidden">
 
             <div class="divider"></div>
+            <p class="section-label">
+              <span class="material-icons-outlined">domain</span>
+              Datos de la empresa
+            </p>
 
             <div class="grid-2">
-              <input type="text" name="empresa_nombre" placeholder="Nombre empresa">
-              <input type="text" name="empresa_rfc" placeholder="RFC">
-              <input type="text" name="empresa_telefono" placeholder="Teléfono">
-              <input type="text" name="empresa_direccion" placeholder="Dirección">
+              <div class="input-field">
+                <span class="material-icons-outlined">store</span>
+                <input type="text" name="empresa_nombre" placeholder="Nombre de la empresa">
+              </div>
+              <div class="input-field">
+                <span class="material-icons-outlined">tag</span>
+                <input type="text" name="empresa_rfc" placeholder="RFC">
+              </div>
+
+              <div class="input-field">
+                <span class="material-icons-outlined">phone</span>
+                <input type="text" name="empresa_telefono" placeholder="Teléfono">
+              </div>
+              <div class="input-field">
+                <span class="material-icons-outlined">location_city</span>
+                <input type="text" name="empresa_ciudad" placeholder="Ciudad">
+              </div>
+              <div class="input-field">
+                <span class="material-icons-outlined">map</span>
+                <input type="text" name="empresa_direccion" placeholder="Dirección">
+              </div>
+              <div class="input-field full-width select-field">
+                <span class="material-icons-outlined">category</span>
+                <select name="empresa_tipo">
+                  <option value="" disabled selected>Tipo de empresa</option>
+                  <option value="publica">Pública</option>
+                  <option value="privada">Privada</option>
+                  <option value="mixta">Mixta</option>
+                </select>
+              </div>
             </div>
 
           </div>
 
           <input type="hidden" id="rol_id" name="rol_id" value="3">
 
-          <button type="submit">Crear cuenta</button>
+          <button type="submit">
+            <span class="material-icons-outlined">person_add</span>
+            Crear cuenta
+          </button>
 
         </form>
 

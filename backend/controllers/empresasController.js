@@ -1,171 +1,257 @@
 const supabase = require('../config/supabase');
 
-/* ---------------- CREAR EMPRESA ---------------- */
-const crearEmpresa = async (req, res) => {
-  try {
-    if (req.user.rol_id !== 1)
-      return res.status(403).json({ mensaje: 'No autorizado' });
-
-    const { nombre, rfc, direccion, telefono, email } = req.body;
-
-    if (!nombre || !rfc || !email)
-      return res.status(400).json({ mensaje: 'Nombre, RFC y email son obligatorios' });
-
-    // Validar duplicado RFC
-    const { data: existente } = await supabase
-      .from('empresas')
-      .select('id')
-      .eq('rfc', rfc)
-      .maybeSingle();
-
-    if (existente)
-      return res.status(400).json({ mensaje: 'Ya existe una empresa con ese RFC' });
-
-    const { data, error } = await supabase
-      .from('empresas')
-      .insert([{ nombre, rfc, direccion, telefono, email }])
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ mensaje: error.message });
-
-    res.status(201).json({ mensaje: 'Empresa creada correctamente', data });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error del servidor' });
-  }
-};
-
-/* ---------------- LISTAR EMPRESAS ---------------- */
-const listarEmpresas = async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const from = (page - 1) * limit;
-    const to = from + parseInt(limit) - 1;
-
-    if (req.user.rol_id === 1) {
-      const { data, error, count } = await supabase
-        .from('empresas')
-        .select('*', { count: 'exact' })
-        .range(from, to)
-        .order('id', { ascending: false });
-
-      if (error) return res.status(500).json({ mensaje: error.message });
-
-      return res.json({
-        total: count,
-        page: Number(page),
-        limit: Number(limit),
-        data
-      });
-    }
-
-    if (req.user.rol_id === 2) {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*')
-        .eq('id', Number(req.user.empresa_id))
-        .single();
-
-      if (error) return res.status(404).json({ mensaje: 'Empresa no encontrada' });
-
-      return res.json([data]);
-    }
-
-    return res.status(403).json({ mensaje: 'No autorizado' });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ mensaje: 'Error del servidor' });
-  }
-};
-
-/* ---------------- LISTAR EMPRESAS PARA USUARIO ---------------- */
-const listarEmpresasParaUsuario = async (req, res) => {
+/* ---------------- OBTENER TODAS LAS EMPRESAS CON ESTADÍSTICAS ---------------- */
+const obtenerEmpresas = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('empresas')
-      .select('id, nombre')
-      .order('nombre');
+      .select('*')
+      .order('nombre', { ascending: true });
 
     if (error) return res.status(500).json({ mensaje: error.message });
 
     res.json(data);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    console.error(err);
+    res.status(500).json({ mensaje: "Error del servidor" });
   }
 };
 
-/* ---------------- ACTUALIZAR EMPRESA ---------------- */
-const actualizarEmpresa = async (req, res) => {
+/* ---------------- OBTENER ESTADÍSTICAS DE EMPRESAS ---------------- */
+const obtenerEstadisticasEmpresas = async (req, res) => {
+  try {
+    // Total de empresas
+    const { count: totalEmpresas } = await supabase
+      .from('empresas')
+      .select('*', { count: 'exact', head: true });
+
+    // Empresas activas
+    const { count: empresasActivas } = await supabase
+      .from('empresas')
+      .select('*', { count: 'exact', head: true })
+      .eq('estado', 'activa');
+
+    // Empresas suspendidas
+    const { count: empresasSuspendidas } = await supabase
+      .from('empresas')
+      .select('*', { count: 'exact', head: true })
+      .eq('estado', 'suspendida');
+
+    // Promedio de cumplimiento
+    const { data: cumplimientos, error: errorCumplimiento } = await supabase
+      .from('empresas')
+      .select('nivel_cumplimiento');
+
+    let promedioCumplimiento = 0;
+    if (cumplimientos && cumplimientos.length > 0) {
+      const suma = cumplimientos.reduce((acc, emp) => acc + (emp.nivel_cumplimiento || 0), 0);
+      promedioCumplimiento = Math.round(suma / cumplimientos.length);
+    }
+
+    res.json({
+      totalEmpresas: totalEmpresas || 0,
+      empresasActivas: empresasActivas || 0,
+      empresasSuspendidas: empresasSuspendidas || 0,
+      promedioCumplimiento: promedioCumplimiento
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: "Error del servidor" });
+  }
+};
+
+/* ---------------- OBTENER EMPRESA POR ID ---------------- */
+const obtenerEmpresa = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, rfc, direccion, telefono, email } = req.body;
 
-    if (!nombre && !rfc && !direccion && !telefono && !email)
-      return res.status(400).json({ mensaje: 'No hay campos para actualizar' });
+    const { data, error } = await supabase
+      .from('empresas')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (
-      req.user.rol_id !== 1 &&
-      !(req.user.rol_id === 2 && Number(req.user.empresa_id) === Number(id))
-    ) {
-      return res.status(403).json({ mensaje: 'No autorizado' });
+    if (error || !data) return res.status(404).json({ mensaje: "Empresa no encontrada" });
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: "Error del servidor" });
+  }
+};
+
+/* ---------------- CREAR EMPRESA ---------------- */
+const crearEmpresa = async (req, res) => {
+  try {
+    const { nombre, rfc, email, telefono, direccion, ciudad, tipo_empresa, estado, nivel_cumplimiento } = req.body;
+
+    if (!req.user || req.user.rol_id !== 1) {
+      return res.status(403).json({ mensaje: "Solo admins pueden crear empresas" });
+    }
+
+    if (!nombre) {
+      return res.status(400).json({ mensaje: "El nombre de la empresa es requerido" });
     }
 
     const { data, error } = await supabase
       .from('empresas')
-      .update({ nombre, rfc, direccion, telefono, email })
-      .eq('id', Number(id))
-      .select()
-      .single();
+      .insert([{
+        nombre,
+        rfc: rfc || null,
+        email: email || null,
+        telefono: telefono || null,
+        direccion: direccion || null,
+        ciudad: ciudad || null,
+        tipo_empresa: tipo_empresa || null,
+        estado: estado || 'activa',
+        nivel_cumplimiento: nivel_cumplimiento || 0,
+        creado_en: new Date()
+      }])
+      .select();
 
-    if (error) return res.status(400).json({ mensaje: error.message });
+    if (error) return res.status(500).json({ mensaje: error.message });
 
-    res.json({ mensaje: 'Empresa actualizada correctamente', data });
-
+    res.status(201).json({ mensaje: "Empresa creada correctamente", data: data[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: "Error del servidor" });
   }
 };
 
-/* ---------------- ELIMINAR EMPRESA ---------------- */
-const eliminarEmpresa = async (req, res) => {
+/* ---------------- EDITAR EMPRESA ---------------- */
+const editarEmpresa = async (req, res) => {
   try {
-    if (req.user.rol_id !== 1)
-      return res.status(403).json({ mensaje: 'No autorizado' });
-
     const { id } = req.params;
+    const { nombre, rfc, email, telefono, direccion, ciudad, tipo_empresa, estado, nivel_cumplimiento } = req.body;
 
-    const { data: empresa } = await supabase
+    if (!req.user || req.user.rol_id !== 1) {
+      return res.status(403).json({ mensaje: "Solo admins pueden editar empresas" });
+    }
+
+    if (!nombre) {
+      return res.status(400).json({ mensaje: "El nombre de la empresa es requerido" });
+    }
+
+    const { data, error } = await supabase
       .from('empresas')
-      .select('id')
-      .eq('id', Number(id))
-      .single();
+      .update({
+        nombre,
+        rfc: rfc || null,
+        email: email || null,
+        telefono: telefono || null,
+        direccion: direccion || null,
+        ciudad: ciudad || null,
+        tipo_empresa: tipo_empresa || null,
+        estado: estado || 'activa',
+        nivel_cumplimiento: nivel_cumplimiento || 0
+      })
+      .eq('id', id)
+      .select();
 
-    if (!empresa)
-      return res.status(404).json({ mensaje: 'Empresa no encontrada' });
+    if (error) return res.status(500).json({ mensaje: error.message });
 
-    const { error } = await supabase
-      .from('empresas')
-      .delete()
-      .eq('id', Number(id));
+    if (data.length === 0) return res.status(404).json({ mensaje: "Empresa no encontrada" });
 
-    if (error) return res.status(400).json({ mensaje: error.message });
-
-    res.json({ mensaje: 'Empresa eliminada correctamente' });
-
+    res.json({ mensaje: "Empresa actualizada correctamente", data: data[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: "Error del servidor" });
+  }
+};
+
+/* ---------------- ELIMINAR EMPRESA (CON CASCADA) ---------------- */
+const eliminarEmpresa = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.user || req.user.rol_id !== 1) {
+      return res.status(403).json({ mensaje: "Solo admins pueden eliminar empresas" });
+    }
+
+    // Obtener los usuarios de esta empresa
+    const { data: usuarios, error: errorUsuarios } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('empresa_id', id);
+
+    if (errorUsuarios) {
+      return res.status(500).json({ mensaje: 'Error al obtener usuarios' });
+    }
+
+    const usuarioIds = usuarios ? usuarios.map(u => u.id) : [];
+
+    // Si hay usuarios, eliminar sus reportes y datos asociados
+    if (usuarioIds.length > 0) {
+      // Obtener reportes de estos usuarios
+      const { data: reportes } = await supabase
+        .from('reportes')
+        .select('id')
+        .in('usuario_id', usuarioIds);
+
+      const reporteIds = reportes ? reportes.map(r => r.id) : [];
+
+      // Eliminar auditorías de reportes
+      if (reporteIds.length > 0) {
+        await supabase
+          .from('auditorias')
+          .delete()
+          .in('reporte_id', reporteIds);
+
+        // Eliminar comentarios
+        await supabase
+          .from('comentarios')
+          .delete()
+          .in('reporte_id', reporteIds);
+
+        // Eliminar evidencias
+        await supabase
+          .from('evidencias')
+          .delete()
+          .in('reporte_id', reporteIds);
+
+        // Eliminar reportes
+        await supabase
+          .from('reportes')
+          .delete()
+          .in('id', reporteIds);
+      }
+
+      // Eliminar auditorías de usuarios
+      await supabase
+        .from('auditorias')
+        .delete()
+        .in('usuario_id', usuarioIds);
+
+      // Eliminar usuarios de la empresa
+      await supabase
+        .from('usuarios')
+        .delete()
+        .in('id', usuarioIds);
+    }
+
+    // Finalmente eliminar la empresa
+    const { error: errorEmpresa } = await supabase
+      .from('empresas')
+      .delete()
+      .eq('id', id);
+
+    if (errorEmpresa) {
+      return res.status(500).json({ mensaje: 'Error al eliminar empresa' });
+    }
+
+    res.json({ mensaje: "Empresa y sus datos asociados eliminados correctamente" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: "Error del servidor" });
   }
 };
 
 module.exports = {
+  obtenerEmpresas,
+  obtenerEstadisticasEmpresas,
+  obtenerEmpresa,
   crearEmpresa,
-  listarEmpresas,
-  listarEmpresasParaUsuario,
-  actualizarEmpresa,
+  editarEmpresa,
   eliminarEmpresa
 };

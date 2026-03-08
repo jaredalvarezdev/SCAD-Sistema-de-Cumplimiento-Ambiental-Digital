@@ -1,127 +1,240 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard | SCAD</title>
 
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin-dashboard.css">
+<head>
+  <meta charset="UTF-8">
+  <title>SCAD Dashboard</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+
+  <!-- Google Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+
+    #modalTexto {
+      color: #64748b;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
 
 </head>
+
 <body>
 
-<div class="dashboard">
+  <div class="layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <div class="sidebar-header">
-      <span class="logo">SCAD</span>
-    </div>
-
-    <nav class="sidebar-menu">
-      <a href="/admin-dashboard" class="menu-item active">Dashboard</a>
-      <a href="/pages/admin/usuarios.html" class="menu-item">Usuarios</a>
-      <a href="/pages/admin/empresas.html" class="menu-item">Empresas</a>
-      <a href="/pages/admin/auditorias.html" class="menu-item">Auditorías</a>
-      <a href="/pages/admin/reportes.html" class="menu-item">Reportes</a>
-      <a href="/pages/admin/roles.html" class="menu-item">Roles</a>
-      <a href="/pages/admin/historial.html" class="menu-item">Historial</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button id="logoutBtn">Cerrar sesión</button>
-    </div>
-
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div>
-        <h2>Dashboard Administrador</h2>
-        <p class="subtitle">Bienvenido al panel de control SCAD</p>
-      </div>
-      <div class="user-info">
-        <span id="nombreUsuario"></span>
-      </div>
-    </header>
-
-    <!-- CARDS -->
-    <section class="cards">
-      <div class="card">
-        <h3>Total Usuarios</h3>
-        <p class="card-number" id="totalUsuarios">0</p>
+      <div class="logo">
+        <h2>SCAD</h2>
+        <span>Sistema Ambiental Digital</span>
       </div>
 
-      <div class="card">
-        <h3>Total Empresas</h3>
-        <p class="card-number" id="totalEmpresas">0</p>
+      <div class="divider"></div>
+
+      <nav class="menu">
+        <a class="active" href="/admin-dashboard">
+          <span class="material-icons-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="/pages/admin/empresas.html">
+          <span class="material-icons-outlined">business</span>
+          Empresas
+        </a>
+        <a href="/pages/admin/usuarios.html">
+          <span class="material-icons-outlined">groups</span>
+          Usuarios
+        </a>
+        <a href="/pages/admin/reportes.html">
+          <span class="material-icons-outlined">description</span>
+          Reportes
+        </a>
+        <a href="/pages/admin/auditorias.html">
+          <span class="material-icons-outlined">assignment</span>
+          Auditorías
+        </a>
+        <a href="/pages/admin/historial.html">
+          <span class="material-icons-outlined">history</span>
+          Actividad
+        </a>
+        <a href="/pages/admin/configuracion.html">
+          <span class="material-icons-outlined">settings</span>
+          Configuración
+        </a>
+      </nav>
+
+      <div class="logout" id="logoutBtn">
+        <span class="material-icons-outlined">logout</span>
+        Cerrar sesión
       </div>
 
-      <div class="card">
-        <h3>Total Reportes</h3>
-        <p class="card-number" id="totalReportes">0</p>
-      </div>
+    </aside>
 
-      <div class="card">
-        <h3>Total Auditorías</h3>
-        <p class="card-number" id="totalAuditorias">0</p>
-      </div>
-    </section>
+    <!-- MAIN -->
+    <main class="main">
 
-    <!-- TABLA -->
-    <section class="table-section">
-      <h3>Últimos usuarios registrados</h3>
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="search">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" placeholder="Buscar en SCAD..." />
+        </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Activo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaUsuarios"></tbody>
-      </table>
-    </section>
+        <div class="top-actions">
+          <div class="notification">
+            <span class="material-icons-outlined">notifications</span>
+          </div>
+          <div class="user">
+            <div class="avatar">
+              <span class="material-icons-outlined">person</span>
+            </div>
+            <span class="username" id="nombreUsuario">Admin</span>
+          </div>
+        </div>
+      </header>
 
-  </main>
+      <!-- CONTENT -->
+      <section class="content">
 
-</div>
+        <!-- CARDS -->
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">groups</span>
+            </div>
+            <div>
+              <p>Total Usuarios</p>
+              <h3 id="totalUsuarios">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">business</span>
+            </div>
+            <div>
+              <p>Total Empresas</p>
+              <h3 id="totalEmpresas">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">description</span>
+            </div>
+            <div>
+              <p>Total Reportes</p>
+              <h3 id="totalReportes">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">verified</span>
+            </div>
+            <div>
+              <p>Total Auditorías</p>
+              <h3 id="totalAuditorias">---</h3>
+            </div>
+          </div>
+        </div>
 
-<!-- ================= MODAL GLOBAL ================= -->
+        <!-- TABLA USUARIOS -->
+        <div class="table-box">
+          <h3>Últimos usuarios registrados</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaUsuarios">
+            </tbody>
+          </table>
+        </div>
 
-<div id="modalGlobal" class="modal-pro">
+      </section>
 
-  <div class="modal-panel">
-
-    <div class="modal-header-pro">
-      <div class="modal-icon-pro">⚙️</div>
-      <div>
-        <h3 id="modalTitulo"></h3>
-        <p id="modalSubtitulo"></p>
-      </div>
-    </div>
-
-    <div class="modal-body-pro" id="modalContenido"></div>
-
-    <div class="modal-footer-pro">
-      <button class="btn-cancel-pro" id="btnCancelar">Cancelar</button>
-      <button class="btn-save-pro" id="btnGuardar">Confirmar</button>
-    </div>
+    </main>
 
   </div>
 
-</div>
+  <!-- ALERTAS CONTAINER -->
+  <div id="alertContainer" class="alert-container"></div>
 
-<script src="/js/admin-dashboard.js"></script>
+  <!-- MODAL EDITAR / ELIMINAR -->
+  <div id="modalConfirmacion" class="modal">
+    <div class="modal-box">
+
+      <div class="modal-header">
+        <h2 id="modalTitulo"></h2>
+        <button class="modal-close" onclick="cerrarModal()">
+          <span class="material-icons-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-content">
+
+        <p id="modalTexto"></p>
+
+        <div id="modalInputs" class="modal-form" style="display:none;">
+
+          <div class="form-group">
+            <label for="inputNombre">Nombre del usuario</label>
+            <input type="text" id="inputNombre" placeholder="Ej: Juan Pérez" />
+          </div>
+
+          <div class="form-group">
+            <label for="inputEmail">Email</label>
+            <input type="email" id="inputEmail" placeholder="Ej: juan@example.com" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputRol">Rol</label>
+              <select id="inputRol">
+                <option value="1">Admin</option>
+                <option value="2">Empresa</option>
+                <option value="3">Auditor</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inputActivo">Estado</label>
+              <select id="inputActivo">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+        <button id="btnConfirmar" class="btn btn-primary">Confirmar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../../js/admin/admin-dashboard.js"></script>
 
 </body>
+
 </html>

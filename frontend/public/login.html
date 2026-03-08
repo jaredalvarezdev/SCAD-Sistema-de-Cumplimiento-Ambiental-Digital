@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar sesión | SCAD</title>
   <link rel="stylesheet" href="../css/auth.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 </head>
 <body>
 
@@ -19,12 +20,18 @@
 
       <div class="input-group">
         <label>Correo electrónico</label>
-        <input type="email" name="email" required>
+        <div class="input-field">
+          <span class="material-icons-outlined">email</span>
+          <input type="email" name="email" placeholder="tu@correo.com" required>
+        </div>
       </div>
 
       <div class="input-group">
         <label>Contraseña</label>
-        <input type="password" name="password" required>
+        <div class="input-field">
+          <span class="material-icons-outlined">lock</span>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
       </div>
 
       <div class="login-options">
@@ -35,6 +42,7 @@
       </div>
 
       <button type="submit" class="btn-primary">
+        <span class="material-icons-outlined">login</span>
         Iniciar sesión
       </button>
 
@@ -45,8 +53,14 @@
     </div>
 
     <div class="social-buttons">
-      <button class="btn-social">Google</button>
-      <button class="btn-social">GitHub</button>
+      <button class="btn-social">
+        <span class="material-icons-outlined">search</span>
+        Google
+      </button>
+      <button class="btn-social">
+        <span class="material-icons-outlined">code</span>
+        GitHub
+      </button>
     </div>
 
     <p class="bottom-text">

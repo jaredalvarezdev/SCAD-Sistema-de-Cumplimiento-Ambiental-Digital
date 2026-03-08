@@ -1,109 +1,221 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Usuarios | SCAD</title>
 
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin-dashboard.css">
+<head>
+  <meta charset="UTF-8">
+  <title>SCAD - Gestión de Usuarios</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+
+  <!-- Google Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+
+    #modalTexto {
+      color: #64748b;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
 
 </head>
+
 <body>
 
-<div class="dashboard">
+  <div class="layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <div class="sidebar-header">
-      <span class="logo">SCAD</span>
-    </div>
-
-    <nav class="sidebar-menu">
-      <a href="/admin-dashboard" class="menu-item">Dashboard</a>
-      <a href="/pages/admin/usuarios.html" class="menu-item active">Usuarios</a>
-      <a href="/pages/admin/empresas.html" class="menu-item">Empresas</a>
-      <a href="/pages/admin/auditorias.html" class="menu-item">Auditorías</a>
-      <a href="/pages/admin/reportes.html" class="menu-item">Reportes</a>
-      <a href="/pages/admin/roles.html" class="menu-item">Roles</a>
-      <a href="/pages/admin/historial.html" class="menu-item">Historial</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button id="logoutBtn">Cerrar sesión</button>
-    </div>
-
-  </aside>
-
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div>
-        <h2>Usuarios</h2>
-        <p class="subtitle">Gestión de usuarios del sistema</p>
+      <div class="logo">
+        <h2>SCAD</h2>
+        <span>Sistema Ambiental Digital</span>
       </div>
-      <div class="user-info">
-        <span id="nombreUsuario"></span>
+
+      <div class="divider"></div>
+
+      <nav class="menu">
+        <a href="/admin-dashboard">
+          <span class="material-icons-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="/pages/admin/empresas.html">
+          <span class="material-icons-outlined">business</span>
+          Empresas
+        </a>
+        <a class="active" href="/pages/admin/usuarios.html">
+          <span class="material-icons-outlined">groups</span>
+          Usuarios
+        </a>
+        <a href="/pages/admin/reportes.html">
+          <span class="material-icons-outlined">description</span>
+          Reportes
+        </a>
+        <a href="/pages/admin/auditorias.html">
+          <span class="material-icons-outlined">assignment</span>
+          Auditorías
+        </a>
+        <a href="/pages/admin/historial.html">
+          <span class="material-icons-outlined">history</span>
+          Actividad
+        </a>
+        <a href="/pages/admin/configuracion.html">
+          <span class="material-icons-outlined">settings</span>
+          Configuración
+        </a>
+      </nav>
+
+      <div class="logout" id="logoutBtn">
+        <span class="material-icons-outlined">logout</span>
+        Cerrar sesión
       </div>
-    </header>
 
+    </aside>
 
-    <!-- TABLA -->
-    <section class="table-section">
-      <h3>Listado completo de usuarios</h3>
+    <!-- MAIN -->
+    <main class="main">
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaUsuarios">
-          <!-- JS insertará datos -->
-        </tbody>
-      </table>
-    </section>
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="search">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" placeholder="Buscar en SCAD..." />
+        </div>
 
-  </main>
+        <div class="top-actions">
+          <div class="notification">
+            <span class="material-icons-outlined">notifications</span>
+          </div>
+          <div class="user">
+            <div class="avatar">
+              <span class="material-icons-outlined">person</span>
+            </div>
+            <span class="username" id="nombreUsuario">Admin</span>
+          </div>
+        </div>
+      </header>
 
-</div>
+      <!-- CONTENT -->
+      <section class="content">
 
+        <!-- HEADER CON BOTÓN -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+          <div>
+            <h3 style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Gestión de Usuarios</h3>
+            <p style="color: #64748b; font-size: 14px;">Administra todos los usuarios registrados en el sistema</p>
+          </div>
+          <button class="btn btn-primary" id="btnAgregarUsuario" style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-icons-outlined">add</span>
+            Nuevo Usuario
+          </button>
+        </div>
 
-<!-- ================= MODAL GLOBAL PRO ================= -->
+        <!-- TABLA DE USUARIOS -->
+        <div class="table-box">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyUsuarios">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px 20px; color: #999;">Cargando usuarios...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-<div id="modalGlobal" class="modal-pro">
+      </section>
 
-  <div class="modal-panel">
-
-    <div class="modal-header-pro">
-      <div class="modal-icon-pro">⚙️</div>
-      <div>
-        <h3 id="modalTitulo"></h3>
-        <p id="modalSubtitulo"></p>
-      </div>
-    </div>
-
-    <div class="modal-body-pro" id="modalContenido"></div>
-
-    <div class="modal-footer-pro">
-      <button class="btn-cancel-pro" id="btnCancelar">Cancelar</button>
-      <button class="btn-save-pro" id="btnGuardar">Confirmar</button>
-    </div>
+    </main>
 
   </div>
 
-</div>
+  <!-- ALERTAS CONTAINER -->
+  <div id="alertContainer" class="alert-container"></div>
 
+  <!-- MODAL -->
+  <div id="modalConfirmacion" class="modal">
+    <div class="modal-box">
 
-<script src="/js/usuarios.js"></script>
+      <div class="modal-header">
+        <h2 id="modalTitulo"></h2>
+        <button class="modal-close" onclick="cerrarModal()">
+          <span class="material-icons-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-content">
+
+        <p id="modalTexto"></p>
+
+        <div id="modalInputs" class="modal-form" style="display:none;">
+
+          <div class="form-group">
+            <label for="inputNombre">Nombre del usuario</label>
+            <input type="text" id="inputNombre" placeholder="Ej: Juan Pérez" />
+          </div>
+
+          <div class="form-group">
+            <label for="inputEmail">Email</label>
+            <input type="email" id="inputEmail" placeholder="Ej: juan@example.com" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputRol">Rol</label>
+              <select id="inputRol">
+                <option value="1">Admin</option>
+                <option value="2">Empresa</option>
+                <option value="3">Auditor</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inputActivo">Estado</label>
+              <select id="inputActivo">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- EMPRESA - Solo visible si es Admin -->
+          <div class="form-group" id="grupoEmpresa" style="display:none;">
+            <label for="inputEmpresa">Empresa asignada</label>
+            <select id="inputEmpresa">
+              <option value="">Sin empresa asignada</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+        <button id="btnConfirmar" class="btn btn-primary">Confirmar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../../js/admin/usuarios.js"></script>
 
 </body>
 </html>

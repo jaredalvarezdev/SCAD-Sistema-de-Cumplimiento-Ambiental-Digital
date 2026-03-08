@@ -6,12 +6,12 @@
 }
 
 :root {
-  --green-dark: #065f46;
+  --green-dark:  #065f46;
   --green-hover: #064e3b;
   --green-light: #34d399;
-  --text-dark: #0f172a;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+  --text-dark:   #0f172a;
+  --text-muted:  #64748b;
+  --border:      #e2e8f0;
 }
 
 body {
@@ -24,7 +24,10 @@ body {
   height: 100vh;
 }
 
-/* PANEL IZQUIERDO */
+/* ========================= */
+/*       PANEL IZQUIERDO     */
+/* ========================= */
+
 .left-panel {
   width: 50%;
   background: white;
@@ -32,6 +35,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 40px;
+  overflow-y: auto;
 }
 
 .form-box {
@@ -61,7 +65,10 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* Selector tipo */
+/* ========================= */
+/*    SELECTOR TIPO USUARIO  */
+/* ========================= */
+
 .tipo-usuario-container {
   display: flex;
   gap: 10px;
@@ -70,6 +77,10 @@ h1 {
 
 .tipo-usuario {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   text-align: center;
   padding: 10px;
   border-radius: 8px;
@@ -77,6 +88,11 @@ h1 {
   cursor: pointer;
   transition: 0.3s;
   font-size: 14px;
+  color: var(--text-muted);
+}
+
+.tipo-usuario .material-icons-outlined {
+  font-size: 18px;
 }
 
 .tipo-usuario.active {
@@ -85,7 +101,10 @@ h1 {
   border-color: var(--green-dark);
 }
 
-/* GRID 2 columnas */
+/* ========================= */
+/*          GRID 2 COL       */
+/* ========================= */
+
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -93,22 +112,81 @@ h1 {
   margin-bottom: 15px;
 }
 
-/* Inputs */
-input {
-  padding: 12px;
+.full-width {
+  grid-column: span 2;
+}
+
+/* ========================= */
+/*       INPUT CON ICONO     */
+/* ========================= */
+
+.input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field .material-icons-outlined {
+  position: absolute;
+  left: 12px;
+  font-size: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color 0.3s;
+}
+
+.input-field input,
+.input-field select {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
   border-radius: 8px;
   border: 1px solid var(--border);
   font-size: 14px;
   transition: 0.3s;
+  background: white;
+  color: var(--text-dark);
 }
 
-input:focus {
+.input-field input:focus,
+.input-field select:focus {
   outline: none;
   border-color: var(--green-dark);
   box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.1);
 }
 
-/* Divider */
+.input-field input:focus ~ .material-icons-outlined,
+.input-field:focus-within .material-icons-outlined {
+  color: var(--green-dark);
+}
+
+/* Select específico */
+.select-field select {
+  appearance: none;
+  cursor: pointer;
+}
+
+/* ========================= */
+/*     SECTION LABEL         */
+/* ========================= */
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-dark);
+  margin-bottom: 14px;
+}
+
+.section-label .material-icons-outlined {
+  font-size: 18px;
+}
+
+/* ========================= */
+/*         DIVIDER           */
+/* ========================= */
+
 .divider {
   height: 1px;
   background: var(--border);
@@ -119,8 +197,11 @@ input:focus {
   display: none;
 }
 
-/* Botón */
-button {
+/* ========================= */
+/*          BOTÓN            */
+/* ========================= */
+
+button[type="submit"] {
   width: 100%;
   padding: 12px;
   background: var(--green-dark);
@@ -130,13 +211,26 @@ button {
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  margin-top: 4px;
 }
 
-button:hover {
+button[type="submit"]:hover {
   background: var(--green-hover);
 }
 
-/* Texto inferior */
+button[type="submit"] .material-icons-outlined {
+  font-size: 20px;
+}
+
+/* ========================= */
+/*       TEXTO INFERIOR      */
+/* ========================= */
+
 .bottom-text {
   margin-top: 15px;
   font-size: 13px;
@@ -146,9 +240,18 @@ button:hover {
 .bottom-text a {
   color: var(--green-dark);
   text-decoration: none;
+  font-weight: 500;
 }
 
-/* PANEL DERECHO */
+.bottom-text a:hover {
+  color: var(--green-hover);
+  text-decoration: underline;
+}
+
+/* ========================= */
+/*       PANEL DERECHO       */
+/* ========================= */
+
 .right-panel {
   width: 50%;
   background: var(--green-dark);
@@ -167,12 +270,8 @@ button:hover {
   color: var(--green-light);
 }
 
-.full-width {
-  grid-column: span 2;
-}
-
 /* ========================= */
-/* LOGIN ESTILO CARD CENTRADA */
+/*    LOGIN CARD CENTRADA    */
 /* ========================= */
 
 .login-container {
@@ -199,7 +298,6 @@ button:hover {
   margin-bottom: 25px;
 }
 
-/* Input group */
 .input-group {
   margin-bottom: 18px;
 }
@@ -211,11 +309,6 @@ button:hover {
   margin-bottom: 6px;
 }
 
-.input-group input {
-  width: 100%;
-}
-
-/* Opciones */
 .login-options {
   display: flex;
   justify-content: space-between;
@@ -235,12 +328,6 @@ button:hover {
   color: var(--green-hover);
 }
 
-/* Botón principal */
-.btn-primary {
-  width: 100%;
-}
-
-/* Divider estilo moderno */
 .login-card .divider {
   position: relative;
   text-align: center;
@@ -267,29 +354,47 @@ button:hover {
   z-index: -1;
 }
 
-/* Social buttons */
 .social-buttons {
   display: flex;
   gap: 10px;
 }
 
 .btn-social {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: white;
   border: 1px solid var(--border);
   color: var(--text-dark);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .btn-social:hover {
   background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
-/* Ajuste checkbox */
+.btn-social .material-icons-outlined {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
 .remember input {
   width: auto;
   margin-right: 5px;
 }
 
-/* Responsive */
+/* ========================= */
+/*        RESPONSIVE         */
+/* ========================= */
+
 @media (max-width: 900px) {
   .container {
     flex-direction: column;
@@ -298,10 +403,15 @@ button:hover {
   .left-panel,
   .right-panel {
     width: 100%;
-    height: 50%;
+    height: auto;
+    min-height: 50vh;
   }
 
   .grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
   }
 }

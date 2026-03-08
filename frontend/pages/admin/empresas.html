@@ -1,60 +1,267 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Empresas | SCAD</title>
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin-dashboard.css">
+  <meta charset="UTF-8">
+  <title>SCAD - Gestión de Empresas</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+
+  <!-- Google Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        colors: {
+          'green': {
+            '600': '#065f46',
+            '700': '#064e3b',
+            '400': '#34d399',
+          },
+          'slate': {
+            '900': '#0f172a',
+            '600': '#64748b',
+            '200': '#e2e8f0',
+          },
+          'neutral': {
+            'quaternary': '#e2e8f0'
+          },
+          'brand': '#065f46'
+        }
+      }
+    }
+  </script>
+
 </head>
+
 <body>
-<div class="dashboard">
-  <aside class="sidebar">
-    <div class="sidebar-header"><span class="logo">SCAD</span></div>
-    <nav class="sidebar-menu">
-      <a href="admin-dashboard.html" class="menu-item">Dashboard</a>
-      <a href="usuarios.html" class="menu-item">Usuarios</a>
-      <a href="#" class="menu-item active">Empresas</a>
-      <a href="auditorias.html" class="menu-item">Auditorías</a>
-      <a href="reportes.html" class="menu-item">Reportes</a>
-      <a href="roles.html" class="menu-item">Roles</a>
-      <a href="historial.html" class="menu-item">Historial</a>
-    </nav>
-    <div class="sidebar-footer">
-      <button id="logoutBtn">Cerrar sesión</button>
-    </div>
-  </aside>
 
-  <main class="main">
-    <header class="topbar">
-      <div>
-        <h2>Empresas</h2>
-        <p class="subtitle">Gestión de empresas registradas</p>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="logo">
+        <h2>SCAD</h2>
+        <span>Sistema Ambiental Digital</span>
       </div>
-      <div class="user-info"><span id="nombreUsuario"></span></div>
-    </header>
 
-    <section class="table-section">
-      <h3>Listado de empresas</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>RFC</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaEmpresas">
-          <!-- JS llenará las empresas -->
-        </tbody>
-      </table>
-    </section>
-  </main>
-</div>
+      <nav class="menu">
+        <a href="/admin-dashboard">
+          <span class="material-icons-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a class="active" href="/pages/admin/empresas.html">
+          <span class="material-icons-outlined">business</span>
+          Empresas
+        </a>
+        <a href="/pages/admin/usuarios.html">
+          <span class="material-icons-outlined">groups</span>
+          Usuarios
+        </a>
+        <a href="/pages/admin/reportes.html">
+          <span class="material-icons-outlined">description</span>
+          Reportes
+        </a>
+        <a href="/pages/admin/auditorias.html">
+          <span class="material-icons-outlined">assignment</span>
+          Auditorías
+        </a>
+        <a href="/pages/admin/historial.html">
+          <span class="material-icons-outlined">history</span>
+          Actividad
+        </a>
+        <a href="/pages/admin/configuracion.html">
+          <span class="material-icons-outlined">settings</span>
+          Configuración
+        </a>
+      </nav>
 
-<script src="/js/empresas.js"></script>
+      <div class="logout" id="logoutBtn">
+        <span class="material-icons-outlined">logout</span>
+        Cerrar sesión
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="search">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" placeholder="Buscar en SCAD..." />
+        </div>
+
+        <div class="top-actions">
+          <div class="notification">
+            <span class="material-icons-outlined">notifications</span>
+          </div>
+          <div class="user">
+            <div class="avatar">
+              <span class="material-icons-outlined">person</span>
+            </div>
+            <span class="username" id="nombreUsuario">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <section class="content">
+
+        <!-- HEADER CON BOTÓN -->
+        <div class="flex justify-between items-center mb-8">
+          <div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Gestión de Empresas</h3>
+            <p class="text-slate-600 text-sm">Administra todas las empresas registradas en el sistema</p>
+          </div>
+          <button class="btn btn-primary flex items-center gap-2" id="btnAgregarEmpresa">
+            <span class="material-icons-outlined text-xl">add</span>
+            Nueva Empresa
+          </button>
+        </div>
+
+        <!-- CARDS ESTADÍSTICAS -->
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">business</span>
+            </div>
+            <div>
+              <p>Total Empresas</p>
+              <h3 id="totalEmpresas">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">check_circle</span>
+            </div>
+            <div>
+              <p>Activas</p>
+              <h3 id="empresasActivas">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">cancel</span>
+            </div>
+            <div>
+              <p>Suspendidas</p>
+              <h3 id="empresasSuspendidas">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">trending_up</span>
+            </div>
+            <div>
+              <p>Cumplimiento Prom.</p>
+              <h3 id="promedioCumplimiento">---</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRID DE EMPRESAS -->
+        <div id="gridEmpresas" class="grid gap-6 mt-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ALERTAS CONTAINER -->
+  <div id="alertContainer" class="alert-container"></div>
+
+  <!-- MODAL EMPRESA -->
+  <div id="modalEmpresa" class="modal">
+    <div class="modal-box">
+      
+      <div class="modal-header">
+        <h2 id="modalTitulo" class="text-xl font-bold">Agregar Empresa</h2>
+        <button class="modal-close" onclick="cerrarModal()">
+          <span class="material-icons-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-content">
+        <div class="modal-form" id="formularioEmpresa">
+          
+          <div class="form-group">
+            <label for="inputNombre" class="block text-sm font-semibold text-slate-900 mb-2">Nombre de la Empresa *</label>
+            <input type="text" id="inputNombre" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="Ej: Tecnología México S.A." />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputRFC" class="block text-sm font-semibold text-slate-900 mb-2">RFC</label>
+              <input type="text" id="inputRFC" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="ABC123456XYZ" />
+            </div>
+            <div class="form-group">
+              <label for="inputTipoEmpresa" class="block text-sm font-semibold text-slate-900 mb-2">Tipo de Empresa</label>
+              <input type="text" id="inputTipoEmpresa" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="Manufactura, Consultoría, etc." />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="inputEmail" class="block text-sm font-semibold text-slate-900 mb-2">Email</label>
+            <input type="email" id="inputEmail" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="contacto@empresa.com" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputTelefono" class="block text-sm font-semibold text-slate-900 mb-2">Teléfono</label>
+              <input type="tel" id="inputTelefono" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="+52 123 456 7890" />
+            </div>
+            <div class="form-group">
+              <label for="inputCiudad" class="block text-sm font-semibold text-slate-900 mb-2">Ciudad</label>
+              <input type="text" id="inputCiudad" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="Santiago" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="inputDireccion" class="block text-sm font-semibold text-slate-900 mb-2">Dirección</label>
+            <input type="text" id="inputDireccion" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" placeholder="Calle Principal 123" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputEstado" class="block text-sm font-semibold text-slate-900 mb-2">Estado</label>
+              <select id="inputEstado" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition">
+                <option value="activa">Activa</option>
+                <option value="suspendida">Suspendida</option>
+                <option value="inactiva">Inactiva</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inputCumplimiento" class="block text-sm font-semibold text-slate-900 mb-2">Nivel de Cumplimiento (%)</label>
+              <input type="number" id="inputCumplimiento" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition" min="0" max="100" placeholder="0" value="0" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnCancelar" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        <button id="btnConfirmar" class="btn btn-primary">Confirmar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="../../js/empresa/empresas-dashboard.js"></script>
+
 </body>
 </html>

@@ -1,29 +1,56 @@
 const express = require('express');
 const router = express.Router();
+const empresasController = require('../controllers/empresasController');
 const verificarToken = require('../middlewares/verificarToken');
 const verificarRol = require('../middlewares/verificarRol');
 
-const {
-  crearEmpresa,
-  listarEmpresas,
-  listarEmpresasParaUsuario, // <-- nueva ruta para rol 3
-  actualizarEmpresa,
-  eliminarEmpresa
-} = require('../controllers/empresasController');
+// ¡IMPORTANTE! Esta ruta DEBE ir ANTES que /:id
+// Si no, Express confundirá "estadisticas" con un ID
+router.get(
+  '/estadisticas',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.obtenerEstadisticasEmpresas
+);
 
-// Crear empresa (solo admin global)
-router.post('/', verificarToken, verificarRol([1]), crearEmpresa);
+// Obtener todas las empresas (solo admin)
+router.get(
+  '/',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.obtenerEmpresas
+);
 
-// Listar empresas (admin y empresa)
-router.get('/', verificarToken, verificarRol([1, 2]), listarEmpresas);
+// Obtener empresa por ID (solo admin)
+router.get(
+  '/:id',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.obtenerEmpresa
+);
 
-// Listar empresas disponibles para usuario normal (rol 3)
-router.get('/disponibles', verificarToken, verificarRol([3]), listarEmpresasParaUsuario);
+// Crear empresa (solo admin)
+router.post(
+  '/',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.crearEmpresa
+);
 
-// Actualizar empresa (admin o empresa propia)
-router.patch('/:id', verificarToken, verificarRol([1, 2]), actualizarEmpresa);
+// Editar empresa (solo admin)
+router.put(
+  '/:id',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.editarEmpresa
+);
 
 // Eliminar empresa (solo admin)
-router.delete('/:id', verificarToken, verificarRol([1]), eliminarEmpresa);
+router.delete(
+  '/:id',
+  verificarToken,
+  verificarRol([1]),
+  empresasController.eliminarEmpresa
+);
 
 module.exports = router;

@@ -157,9 +157,97 @@ const cambiarEstadoReporte = async (req, res) => {
   }
 }
 
+/* ---------------- ELIMINAR REPORTES POR USUARIO (CASCADA) ---------------- */
+const eliminarReportesPorUsuario = async (req, res) => {
+  try {
+    const { usuarioId } = req.params
+
+    // Verificar que el usuario es admin
+    if (req.user.rol_id !== 1) {
+      return res.status(403).json({ mensaje: 'Solo admins pueden eliminar reportes' })
+    }
+
+    // Primero obtener todos los reportes del usuario
+    const { data: reportes, error: errorGet } = await supabase
+      .from('reportes')
+      .select('id')
+      .eq('usuario_id', usuarioId)
+
+    if (errorGet) {
+      return res.status(500).json({ mensaje: 'Error al buscar reportes: ' + errorGet.message })
+    }
+
+    if (!reportes || reportes.length === 0) {
+      // Si no hay reportes, simplemente retornar éxito
+      return res.json({ 
+        mensaje: 'No hay reportes para eliminar',
+        reportesEliminados: 0
+      })
+    }
+
+    // Luego eliminarlos
+    const { error: errorDelete } = await supabase
+      .from('reportes')
+      .delete()
+      .eq('usuario_id', usuarioId)
+
+    if (errorDelete) {
+      return res.status(500).json({ mensaje: 'Error al eliminar reportes: ' + errorDelete.message })
+    }
+
+    res.json({ 
+      mensaje: `${reportes.length} reportes eliminados correctamente`,
+      reportesEliminados: reportes.length
+    })
+
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ mensaje: 'Error del servidor' })
+  }
+}
+
+/* ---------------- ESTADISTICAS DASHBOARD ---------------- */
+
+const obtenerEstadisticas = async (req,res)=>{
+  try{
+
+    const {count:totalUsuarios} = await supabase
+      .from('usuarios')
+      .select('*',{count:'exact',head:true});
+
+    const {count:totalEmpresas} = await supabase
+      .from('empresas')
+      .select('*',{count:'exact',head:true});
+
+    const {count:totalReportes} = await supabase
+      .from('reportes')
+      .select('*',{count:'exact',head:true});
+
+    const {count:totalAuditorias} = await supabase
+      .from('auditorias')
+      .select('*',{count:'exact',head:true});
+
+    res.json({
+      totalUsuarios,
+      totalEmpresas,
+      totalReportes,
+      totalAuditorias
+    });
+
+  }catch(err){
+
+    console.error(err);
+    res.status(500).json({mensaje:"Error obteniendo estadísticas"});
+
+  }
+};
+
+
 module.exports = {
   crearReporte,
   listarReportes,
   verReporte,
-  cambiarEstadoReporte
+  cambiarEstadoReporte,
+  eliminarReportesPorUsuario,
+  obtenerEstadisticas
 }

@@ -58,7 +58,32 @@ app.get('/admin-dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pages/admin/admin-dashboard.html'));
 });
 
-// ----------------- Servidor -----------------
+// ============== RUTAS PARA PÁGINAS ADMIN ==============
+app.get('/pages/admin/empresas.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/empresas.html'));
+});
+
+app.get('/pages/admin/usuarios.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/usuarios.html'));
+});
+
+app.get('/pages/admin/reportes.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/reportes.html'));
+});
+
+app.get('/pages/admin/auditorias.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/auditorias.html'));
+});
+
+app.get('/pages/admin/historial.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/historial.html'));
+});
+
+app.get('/pages/admin/configuracion.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/configuracion.html'));
+});
+
+// ============== SERVIDOR ==============
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);

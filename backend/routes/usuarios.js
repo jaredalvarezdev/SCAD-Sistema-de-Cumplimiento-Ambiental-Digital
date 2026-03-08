@@ -38,17 +38,16 @@ router.post('/login', usuariosController.login);
 // Solicitar código de recuperación
 router.post('/recuperar', usuariosController.solicitarRecuperacion);
 
-// Obtener todos los usuarios (solo admin)
-router.get('/', verificarToken, verificarAdmin, usuariosController.obtenerUsuarios);
-
 // Cambiar contraseña
 router.post('/cambiar', usuariosController.cambiarContrasena);
 
-// ---------------- RUTAS ADMIN ----------------
+// Obtener todos los usuarios (solo admin)
+router.get('/', verificarToken, verificarAdmin, usuariosController.obtenerUsuarios);
+
 // Editar usuario (nombre, email, rol, activo, empresa)
 router.put('/:id', verificarToken, verificarAdmin, usuariosController.editarUsuario);
 
-// Eliminar usuario
+// Eliminar usuario (CON CASCADA DE REPORTES Y AUDITORÍAS)
 router.delete('/:id', verificarToken, verificarAdmin, usuariosController.eliminarUsuario);
 
 module.exports = router;

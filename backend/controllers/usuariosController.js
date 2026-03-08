@@ -17,7 +17,10 @@ const registrarUsuario = async (req, res) => {
       empresa_nombre,
       empresa_rfc,
       empresa_direccion,
-      empresa_telefono
+      empresa_telefono,
+      empresa_ciudad,
+      empresa_tipo,
+      empresa_estado
     } = req.body;
 
     rol_id = Number(rol_id);
@@ -38,25 +41,31 @@ const registrarUsuario = async (req, res) => {
 
     if (usuarioExistente) return res.status(400).json({ mensaje: "El email ya está registrado" });
 
-    // Guardamos el valor original de empresa_id antes de crear la empresa
     const empresa_id_original = empresa_id;
 
-    // Crear empresa si es rol cliente/empresa y no existe
     if (rol_id === 2 && (!empresa_id || empresa_id === "null")) {
-      if (!empresa_nombre || !empresa_rfc) return res.status(400).json({ mensaje: "Faltan datos de la empresa" });
+      if (!empresa_nombre || !empresa_rfc) {
+        return res.status(400).json({ mensaje: "Faltan datos de la empresa (nombre y RFC son obligatorios)" });
+      }
 
       const { data: nuevaEmpresa, error: errorEmpresa } = await supabase
         .from('empresas')
         .insert([{
-          nombre: empresa_nombre,
-          rfc: empresa_rfc,
-          direccion: empresa_direccion || '',
-          telefono: empresa_telefono || '',
+          nombre:             empresa_nombre,
+          rfc:                empresa_rfc,
+          direccion:          empresa_direccion  || '',
+          telefono:           empresa_telefono   || '',
+          ciudad:             empresa_ciudad     || '',
+          tipo_empresa:       empresa_tipo       || '',
+          estado:             empresa_estado     || 'activa',
+          nivel_cumplimiento: 0,
           email
         }])
         .select();
 
-      if (errorEmpresa) return res.status(500).json({ mensaje: "Error al crear empresa: " + errorEmpresa.message });
+      if (errorEmpresa) {
+        return res.status(500).json({ mensaje: "Error al crear empresa: " + errorEmpresa.message });
+      }
 
       empresa_id = nuevaEmpresa[0].id;
     }
@@ -68,23 +77,25 @@ const registrarUsuario = async (req, res) => {
       .insert([{
         nombre,
         email,
-        password: hashedPassword,
+        password:   hashedPassword,
         rol_id,
         empresa_id: rol_id === 1 ? null : empresa_id,
-        activo: true,
-        creado_en: new Date()
+        activo:     true,
+        creado_en:  new Date()
       }])
       .select('id, nombre, email, rol_id, empresa_id');
 
-    if (errorUsuario) return res.status(500).json({ mensaje: "Error al crear usuario: " + errorUsuario.message });
+    if (errorUsuario) {
+      return res.status(500).json({ mensaje: "Error al crear usuario: " + errorUsuario.message });
+    }
 
-    // Mensaje final según si se creó empresa o no
     let mensajeFinal = "Usuario creado correctamente";
     if (rol_id === 2 && !empresa_id_original) {
       mensajeFinal = "Usuario y empresa creados correctamente";
     }
 
     res.status(201).json({ mensaje: mensajeFinal, data: nuevoUsuario });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ mensaje: "Error del servidor" });
@@ -142,9 +153,9 @@ const solicitarRecuperacion = async (req, res) => {
       usuario_id: user.id,
       codigo,
       tipo_envio,
-      creado_en: new Date(),
+      creado_en:  new Date(),
       expiracion,
-      usado: false
+      usado:      false
     }]);
 
     if (tipo_envio === 'email') {
@@ -153,10 +164,10 @@ const solicitarRecuperacion = async (req, res) => {
         auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
       });
       await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: user.email,
+        from:    process.env.GMAIL_USER,
+        to:      user.email,
         subject: 'Código de recuperación',
-        text: `Tu código es: ${codigo}`
+        text:    `Tu código es: ${codigo}`
       });
     } else if (tipo_envio === 'sms') {
       if (!user.telefono) return res.status(400).json({ mensaje: "Usuario no tiene teléfono registrado" });
@@ -164,7 +175,7 @@ const solicitarRecuperacion = async (req, res) => {
       await client.messages.create({
         body: `Tu código de recuperación es: ${codigo}`,
         from: process.env.TWILIO_PHONE,
-        to: user.telefono
+        to:   user.telefono
       });
     }
 
@@ -220,14 +231,8 @@ const editarUsuario = async (req, res) => {
       return res.status(403).json({ mensaje: "Solo admins pueden editar usuarios" });
     }
 
-    const datosActualizar = {
-      nombre,
-      email,
-      rol_id,
-      activo
-    };
+    const datosActualizar = { nombre, email, rol_id, activo };
 
-    // SOLO agregar empresa_id si viene definido
     if (empresa_id !== undefined) {
       datosActualizar.empresa_id = empresa_id;
     }
@@ -248,7 +253,7 @@ const editarUsuario = async (req, res) => {
   }
 };
 
-/* ---------------- ELIMINAR USUARIO ---------------- */
+/* ---------------- ELIMINAR USUARIO (CON CASCADA SILENCIOSA) ---------------- */
 const eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
@@ -257,14 +262,31 @@ const eliminarUsuario = async (req, res) => {
       return res.status(403).json({ mensaje: "Solo admins pueden eliminar usuarios" });
     }
 
-    const { error } = await supabase
+    const { data: reportes } = await supabase
+      .from('reportes')
+      .select('id')
+      .eq('usuario_id', id);
+
+    const reporteIds = reportes ? reportes.map(r => r.id) : [];
+
+    if (reporteIds.length > 0) {
+      await supabase.from('auditorias').delete().in('reporte_id', reporteIds);
+      await supabase.from('comentarios').delete().in('reporte_id', reporteIds);
+      await supabase.from('evidencias').delete().in('reporte_id', reporteIds);
+      await supabase.from('reportes').delete().eq('usuario_id', id);
+    }
+
+    await supabase.from('auditorias').delete().eq('usuario_id', id);
+
+    const { error: errorUsuario } = await supabase
       .from('usuarios')
       .delete()
       .eq('id', id);
 
-    if (error) return res.status(500).json({ mensaje: error.message });
+    if (errorUsuario) return res.status(500).json({ mensaje: 'Error al eliminar usuario' });
 
-    res.json({ mensaje: "Usuario eliminado correctamente" });
+    res.json({ mensaje: "Usuario y sus datos asociados eliminados correctamente" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ mensaje: "Error del servidor" });
