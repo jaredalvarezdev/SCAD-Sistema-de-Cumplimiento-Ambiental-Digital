@@ -32,13 +32,40 @@ Responde SOLO en JSON:
         headers: {
           Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 20000
       }
     )
 
-    const texto = response.data.choices[0].message.content
+    // Validar que la respuesta exista
+    if (
+      !response.data ||
+      !response.data.choices ||
+      !response.data.choices[0] ||
+      !response.data.choices[0].message
+    ) {
+      throw new Error("Respuesta inválida de DeepSeek")
+    }
 
-    return JSON.parse(texto)
+    let texto = response.data.choices[0].message.content
+
+    // Limpiar formato markdown si viene ```json
+    texto = texto.replace(/```json/g, '')
+    texto = texto.replace(/```/g, '')
+    texto = texto.trim()
+
+    try {
+      return JSON.parse(texto)
+    } catch (parseError) {
+
+      console.log("Error parseando respuesta IA:", texto)
+
+      return {
+        valido: false,
+        confianza: 0,
+        observacion: "Respuesta IA inválida"
+      }
+    }
 
   } catch (error) {
 

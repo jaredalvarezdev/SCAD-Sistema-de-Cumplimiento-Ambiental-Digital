@@ -6,143 +6,201 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Empresa Dashboard | SCAD</title>
 
-  <link rel="stylesheet" href="../../css/dashboard.css">
-  <link rel="stylesheet" href="../../css/empresa-dashboard.css">
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+
+  <!-- Google Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    #modalTexto {
+      color: #64748b;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Override centrado global para esta tabla */
+    #tablaReportes td,
+    #tablaReportes th {
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    #tablaReportes td:nth-child(1),
+    #tablaReportes td:nth-child(3),
+    #tablaReportes td:nth-child(4),
+    #tablaReportes td:nth-child(5) {
+      text-align: center;
+    }
+
+    #tablaReportes thead th:nth-child(1),
+    #tablaReportes thead th:nth-child(3),
+    #tablaReportes thead th:nth-child(4),
+    #tablaReportes thead th:nth-child(5) {
+      text-align: center;
+    }
+
+
+  </style>
+
 </head>
 
 <body>
 
-  <div class="dashboard">
+  <div class="layout">
 
-    <!-- ============================= -->
     <!-- SIDEBAR -->
-    <!-- ============================= -->
-
     <aside class="sidebar">
 
-      <div class="sidebar-header">
-        <span class="logo">SCAD</span>
+      <div class="logo">
+        <h2>SCAD</h2>
+        <span>Sistema Ambiental Digital</span>
       </div>
 
-      <nav class="sidebar-menu">
-        <a href="#" class="menu-item active">Dashboard</a>
-        <a href="mis-reportes.html" class="menu-item">Mis Reportes</a>
-        <a href="generar-pdf.html" class="menu-item">Generar PDF</a>
-        <a href="evidencias.html" class="menu-item">Evidencias</a>
-        <a href="notificaciones.html" class="menu-item">Notificaciones</a>
-        <a href="perfil-empresa.html" class="menu-item">Mi Perfil</a>
+      <div class="divider"></div>
+
+      <nav class="menu">
+        <a class="active" href="/empresa-dashboard">
+          <span class="material-icons-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="/pages/empresa/mis-reportes.html">
+          <span class="material-icons-outlined">description</span>
+          Mis Reportes
+        </a>
+        <a href="/pages/empresa/generar-pdf.html">
+          <span class="material-icons-outlined">picture_as_pdf</span>
+          Generar PDF
+        </a>
+        
+        <a href="/pages/empresa/notificaciones.html">
+          <span class="material-icons-outlined">notifications</span>
+          Notificaciones
+          <span id="notiCount" style="
+            background: #DC2626;
+            color: white;
+            border-radius: 999px;
+            font-size: 11px;
+            padding: 1px 7px;
+            margin-left: auto;
+            display: none;
+          ">0</span>
+        </a>
+        <a href="/pages/empresa/perfil-empresa.html">
+          <span class="material-icons-outlined">business</span>
+          Mi Perfil
+        </a>
       </nav>
 
-      <div class="sidebar-footer">
-        <button id="logoutBtn">Cerrar sesión</button>
+      <div class="logout" id="logoutBtn">
+        <span class="material-icons-outlined">logout</span>
+        Cerrar sesión
       </div>
 
     </aside>
 
-
-    <!-- ============================= -->
     <!-- MAIN -->
-    <!-- ============================= -->
-
     <main class="main">
 
-      <!-- ============================= -->
       <!-- TOPBAR -->
-      <!-- ============================= -->
-
       <header class="topbar">
-
-        <div>
-          <h2>Dashboard Empresa</h2>
-          <p class="subtitle">
-            Panel de gestión de reportes y evidencias
-          </p>
+        <div class="search">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" placeholder="Buscar en SCAD..." />
         </div>
 
-        <div class="topbar-actions">
-
-          <!-- CAMPANA -->
-          <div class="notification-container">
-
-            <div class="notification-icon" id="notificationToggle">
-              🔔
-              <span class="notification-badge" id="notiCount">0</span>
-            </div>
-
-            <div class="notification-dropdown" id="notificationDropdown">
-              <h4>Notificaciones</h4>
-              <ul id="notificationList">
-                <!-- JS insertará notificaciones aquí -->
-              </ul>
-
-              <a href="notificaciones.html" class="view-all">
-                Ver todas
-              </a>
-            </div>
-
+        <div class="top-actions">
+          <div class="notification">
+            <span class="material-icons-outlined">notifications</span>
           </div>
-
-          <!-- NOMBRE EMPRESA -->
-          <div class="user-info">
-            <span id="nombreEmpresa"></span>
+          <div class="user">
+            <div class="avatar">
+              <span class="material-icons-outlined">person</span>
+            </div>
+            <div style="display: flex; flex-direction: column; line-height: 1.3;">
+              <span class="username" id="nombreUsuario">Usuario</span>
+              <span style="font-size: 11px; color: #6b7280;" id="nombreEmpresa">Empresa</span>
+            </div>
           </div>
-
         </div>
-
       </header>
 
+      <!-- CONTENT -->
+      <section class="content">
 
-      <!-- ============================= -->
-      <!-- CARDS -->
-      <!-- ============================= -->
-
-      <section class="cards">
-
-        <div class="card">
-          <h3>Reportes Pendientes</h3>
-          <p class="card-number" id="reportesPendientes">0</p>
+        <!-- HEADER -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Dashboard Empresa</h3>
+          <p style="color: #64748b; font-size: 14px;">Panel de gestión de reportes y evidencias</p>
         </div>
 
-        <div class="card">
-          <h3>Reportes Aprobados</h3>
-          <p class="card-number" id="reportesAprobados">0</p>
+        <!-- CARDS -->
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">hourglass_empty</span>
+            </div>
+            <div>
+              <p>Reportes Pendientes</p>
+              <h3 id="reportesPendientes">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">check_circle</span>
+            </div>
+            <div>
+              <p>Reportes Aprobados</p>
+              <h3 id="reportesAprobados">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">cancel</span>
+            </div>
+            <div>
+              <p>Reportes Rechazados</p>
+              <h3 id="reportesRechazados">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">attach_file</span>
+            </div>
+            <div>
+              <p>Total Evidencias</p>
+              <h3 id="totalEvidencias">---</h3>
+            </div>
+          </div>
         </div>
 
-        <div class="card">
-          <h3>Reportes Rechazados</h3>
-          <p class="card-number" id="reportesRechazados">0</p>
+        <!-- TABLA ÚLTIMOS REPORTES -->
+        <div class="table-box">
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">Últimos Reportes</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaReportes">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 40px 20px; color: #999;">Cargando reportes...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <div class="card">
-          <h3>Total Evidencias</h3>
-          <p class="card-number" id="totalEvidencias">0</p>
-        </div>
-
-      </section>
-
-
-      <!-- ============================= -->
-      <!-- TABLA -->
-      <!-- ============================= -->
-
-      <section class="table-section">
-
-        <h3>Últimos Reportes</h3>
-
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Título</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-
-          <tbody id="tablaReportes">
-            <!-- JS cargará aquí los reportes -->
-          </tbody>
-        </table>
 
       </section>
 
@@ -150,7 +208,10 @@
 
   </div>
 
-  <script src="../../js/empresa-dashboard.js"></script>
+  <!-- ALERTAS CONTAINER -->
+  <div id="alertContainer" class="alert-container"></div>
+
+  <script src="../../js/empresa/empresa-dashboard.js"></script>
 
 </body>
 </html>

@@ -4,8 +4,7 @@ const empresasController = require('../controllers/empresasController');
 const verificarToken = require('../middlewares/verificarToken');
 const verificarRol = require('../middlewares/verificarRol');
 
-// ¡IMPORTANTE! Esta ruta DEBE ir ANTES que /:id
-// Si no, Express confundirá "estadisticas" con un ID
+// Estadísticas → solo admin
 router.get(
   '/estadisticas',
   verificarToken,
@@ -13,7 +12,7 @@ router.get(
   empresasController.obtenerEstadisticasEmpresas
 );
 
-// Obtener todas las empresas (solo admin)
+// Obtener todas las empresas → solo admin
 router.get(
   '/',
   verificarToken,
@@ -21,15 +20,15 @@ router.get(
   empresasController.obtenerEmpresas
 );
 
-// Obtener empresa por ID (solo admin)
+// Obtener empresa por ID → admin Y empresa (rol 2 necesita ver su propia empresa)
 router.get(
   '/:id',
   verificarToken,
-  verificarRol([1]),
+  verificarRol([1, 2]),
   empresasController.obtenerEmpresa
 );
 
-// Crear empresa (solo admin)
+// Crear empresa → solo admin
 router.post(
   '/',
   verificarToken,
@@ -37,7 +36,7 @@ router.post(
   empresasController.crearEmpresa
 );
 
-// Editar empresa (solo admin)
+// Editar empresa → solo admin
 router.put(
   '/:id',
   verificarToken,
@@ -45,7 +44,7 @@ router.put(
   empresasController.editarEmpresa
 );
 
-// Eliminar empresa (solo admin)
+// Eliminar empresa → solo admin
 router.delete(
   '/:id',
   verificarToken,

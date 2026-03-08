@@ -2,38 +2,54 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
 const path = require('path');
 
 const app = express();
 
-// ----------------- Archivos estáticos -----------------
+// Configurar multer ANTES de las rutas
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB máximo
+  }
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(upload.single('file'));
+
+// Archivos estáticos
 app.use(express.static(path.join(__dirname, '../frontend/public')));
-app.use('/pages', express.static(path.join(__dirname, '../frontend/pages')));
-app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
-app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
+app.use('/pages',  express.static(path.join(__dirname, '../frontend/pages')));
+app.use('/css',    express.static(path.join(__dirname, '../frontend/css')));
+app.use('/js',     express.static(path.join(__dirname, '../frontend/js')));
 app.use('/assets', express.static(path.join(__dirname, '../frontend/assets')));
 
-// ----------------- Rutas de la API -----------------
-const usuariosRoutes = require('./routes/usuarios.js');
-const empresasRoutes = require('./routes/empresas.js');
-const reportesRoutes = require('./routes/reportes.js');
-const evidenciasRoutes = require('./routes/evidencias.js');
-const comentariosRoutes = require('./routes/comentarios.js');
-const historialRoutes = require('./routes/historial.js');
-const notificacionesRoutes = require('./routes/notificaciones.js');
+// Rutas de la API
+const usuariosRoutes          = require('./routes/usuarios.js');
+const empresasRoutes          = require('./routes/empresas.js');
+const reportesRoutes          = require('./routes/reportes.js');
+const evidenciasRoutes        = require('./routes/evidencias.js');
+const comentariosRoutes       = require('./routes/comentarios.js');
+const historialRoutes         = require('./routes/historial.js');
+const notificacionesRoutes    = require('./routes/notificaciones.js');
+const reportesGeneradosRoutes = require('./routes/reportesGenerados.js');
+const residuosRoutes          = require('./routes/residuos.js');
 
-app.use(cors());
-app.use(express.json());
+app.use('/api/usuarios',           usuariosRoutes);
+app.use('/api/empresas',           empresasRoutes);
+app.use('/api/reportes',           reportesRoutes);
+app.use('/api/evidencias',         evidenciasRoutes);
+app.use('/api/comentarios',        comentariosRoutes);
+app.use('/api/historial',          historialRoutes);
+app.use('/api/notificaciones',     notificacionesRoutes);
+app.use('/api/reportes-generados', reportesGeneradosRoutes);
+app.use('/api/residuos',           residuosRoutes);
 
-app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/empresas', empresasRoutes);
-app.use('/api/reportes', reportesRoutes);
-app.use('/api/evidencias', evidenciasRoutes);
-app.use('/api/comentarios', comentariosRoutes);
-app.use('/api/historial', historialRoutes)
-app.use('/api/notificaciones', notificacionesRoutes)
-
-// ----------------- Rutas HTML -----------------
+// Rutas HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
 });
@@ -58,7 +74,7 @@ app.get('/admin-dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pages/admin/admin-dashboard.html'));
 });
 
-// ============== RUTAS PARA PÁGINAS ADMIN ==============
+// Rutas para páginas admin
 app.get('/pages/admin/empresas.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pages/admin/empresas.html'));
 });
@@ -83,7 +99,7 @@ app.get('/pages/admin/configuracion.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pages/admin/configuracion.html'));
 });
 
-// ============== SERVIDOR ==============
+// Servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);

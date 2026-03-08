@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Reportes | SCAD</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight { from{transform:translateX(400px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    .page-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px; }
+    .page-header h3 { font-size:24px;font-weight:700;color:#0f172a;margin-bottom:4px; }
+    .page-header p  { color:#64748b;font-size:14px; }
+
+    .btn-crear {
+      display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+      background:#1B6B4F;color:white;border:none;border-radius:8px;
+      font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;white-space:nowrap;
+    }
+    .btn-crear:hover { background:#165844; }
+
+    .filtros { display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap; }
+    .filtro-btn {
+      padding:8px 16px;border-radius:20px;border:1px solid #e5e7eb;background:white;
+      font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;transition:all 0.2s;
+    }
+    .filtro-btn:hover  { border-color:#1B6B4F;color:#1B6B4F; }
+    .filtro-btn.active { background:#1B6B4F;color:white;border-color:#1B6B4F; }
+
+    .empty-state { text-align:center;padding:60px 20px;color:#9ca3af; }
+    .empty-state .material-icons-outlined { font-size:48px;margin-bottom:12px;display:block; }
+
+    .detalle-field { margin-bottom:16px; }
+    .detalle-field label {
+      font-size:11px;font-weight:600;color:#9ca3af;
+      text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;
+    }
+    .detalle-field p { font-size:14px;color:#0f172a;line-height:1.6; }
+
+    .ia-box { background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:4px; }
+    .ia-titulo { font-size:12px;font-weight:600;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+    .confianza-bar { height:6px;background:#e5e7eb;border-radius:999px;margin-top:8px;overflow:hidden; }
+    .confianza-fill { height:100%;border-radius:999px;transition:width 0.6s ease; }
+
+    /* ── IA analizando banner ── */
+    .ia-analizando {
+      display:flex;align-items:center;gap:10px;padding:12px 16px;
+      background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;margin-top:4px;
+      animation:pulse 2s ease-in-out infinite;
+    }
+    .ia-analizando .material-icons-outlined { color:#2563EB;font-size:18px; }
+    .ia-analizando span { font-size:13px;color:#1e40af;font-weight:500; }
+
+    .evidencias-section { margin-top:24px;border-top:1px solid #e5e7eb;padding-top:20px; }
+    .evidencias-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+    .evidencias-header h4 { font-size:14px;font-weight:600;color:#0f172a; }
+
+    .btn-subir {
+      display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
+      background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;
+      font-size:13px;font-weight:500;color:#374151;cursor:pointer;transition:all 0.2s;
+    }
+    .btn-subir:hover { background:#e5e7eb; }
+
+    .spinner {
+      display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);
+      border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;
+      vertical-align:middle;margin-right:4px;
+    }
+    .spinner-green {
+      display:inline-block;width:14px;height:14px;border:2px solid rgba(37,99,235,0.3);
+      border-top-color:#2563EB;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;
+    }
+
+    /* ── Upload area ── */
+    .upload-drop {
+      border:2px dashed #d1d5db;border-radius:8px;padding:24px;
+      text-align:center;cursor:pointer;transition:all 0.2s;background:#f9fafb;
+    }
+    .upload-drop:hover { border-color:#1B6B4F;background:rgba(27,107,79,0.03); }
+    .upload-drop .material-icons-outlined { font-size:36px;color:#9ca3af;display:block;margin-bottom:8px; }
+    .upload-drop p { font-size:13px;color:#6b7280;margin:0; }
+    .upload-drop input[type="file"] { display:none; }
+
+    .upload-file-preview {
+      display:flex;align-items:center;gap:8px;padding:12px;
+      background:#f0fdf4;border:1px solid #86efac;border-radius:6px;margin-top:8px;
+    }
+    .upload-file-preview .material-icons-outlined { color:#22c55e;font-size:20px;flex-shrink:0; }
+    .upload-file-info { flex:1; }
+    .upload-file-info strong { display:block;font-size:13px;color:#15803d;font-weight:600; }
+    .upload-file-info span  { font-size:12px;color:#4ade80; }
+    .upload-file-preview button {
+      background:none;border:none;cursor:pointer;color:#dc2626;padding:4px;
+      display:flex;align-items:center;
+    }
+
+    /* ── Botones upload ── */
+    .upload-actions { display:flex;gap:8px;margin-top:12px; }
+    .upload-actions .btn-upload-confirm {
+      flex:1;padding:10px 16px;background:#1B6B4F;color:#fff;border:none;border-radius:6px;
+      cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;
+      justify-content:center;gap:6px;transition:background 0.2s;
+    }
+    .upload-actions .btn-upload-confirm:hover { background:#0f5f42; }
+    .upload-actions .btn-upload-confirm:disabled { background:#9ca3af;cursor:not-allowed; }
+    .upload-actions .btn-upload-cancel {
+      flex:1;padding:10px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;
+      border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;
+      display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;
+    }
+    .upload-actions .btn-upload-cancel:hover { background:#e5e7eb; }
+
+    .char-count { font-size:12px;color:#9ca3af;text-align:right;margin-top:4px; }
+    .char-count.ok   { color:#1B6B4F; }
+    .char-count.warn { color:#F59E0B; }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/empresa-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a class="active" href="/pages/empresa/mis-reportes.html">
+        <span class="material-icons-outlined">description</span>Mis Reportes
+      </a>
+      <a href="/pages/empresa/generar-pdf.html">
+        <span class="material-icons-outlined">picture_as_pdf</span>Generar PDF
+      </a>
+      <a href="/pages/empresa/notificaciones.html">
+        <span class="material-icons-outlined">notifications</span>Notificaciones
+        <span id="notiCount" style="background:#DC2626;color:white;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+      </a>
+      <a href="/pages/empresa/perfil-empresa.html">
+        <span class="material-icons-outlined">business</span>Mi Perfil
+      </a>
+    </nav>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
+      </div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <div style="display:flex;flex-direction:column;line-height:1.3;">
+            <span class="username" id="nombreUsuario">Usuario</span>
+            <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="page-header">
+        <div>
+          <h3>Mis Reportes</h3>
+          <p>Gestiona y consulta los reportes ambientales de tu empresa</p>
+        </div>
+        <button class="btn-crear" onclick="abrirModalCrear()">
+          <span class="material-icons-outlined">add</span>
+          Nuevo Reporte
+        </button>
+      </div>
+
+      <div class="filtros">
+        <button class="filtro-btn active" onclick="filtrar(null, this)">Todos</button>
+        <button class="filtro-btn" onclick="filtrar(1, this)">Pendientes</button>
+        <button class="filtro-btn" onclick="filtrar(3, this)">Aprobados</button>
+        <button class="filtro-btn" onclick="filtrar(4, this)">Rechazados</button>
+      </div>
+
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Fecha</th>
+              <th>Confianza IA</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaReportes">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">Cargando reportes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="alertContainer" class="alert-container"></div>
+
+<!-- ══ MODAL CREAR ══ -->
+<div id="modalCrear" class="modal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <h2>Nuevo Reporte</h2>
+      <button class="modal-close" onclick="cerrarModalCrear()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-content">
+      <div class="modal-form">
+        <div class="form-group">
+          <label for="inputTitulo">Título del reporte</label>
+          <input type="text" id="inputTitulo" placeholder="Ej: Reporte de emisiones Q1 2026" maxlength="120" oninput="updateChar(this,'charTitulo',120)" />
+          <div class="char-count" id="charTitulo">0 / 120</div>
+        </div>
+        <div class="form-group">
+          <label for="inputDescripcion">Descripción</label>
+          <textarea id="inputDescripcion" rows="5" placeholder="Describe detalladamente el contenido del reporte ambiental..." maxlength="2000" oninput="updateChar(this,'charDesc',2000)" style="resize:vertical;"></textarea>
+          <div class="char-count" id="charDesc">0 / 2000 (mínimo 20 caracteres)</div>
+        </div>
+        <div class="form-group">
+          <label>Adjuntar archivo <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
+          <div class="upload-drop" onclick="document.getElementById('fileInputCrear').click()">
+            <span class="material-icons-outlined">cloud_upload</span>
+            <p>Haz clic para seleccionar un archivo</p>
+            <p style="font-size:11px;margin-top:4px;">PDF, imágenes, Word, Excel (máx. 10MB)</p>
+            <input type="file" id="fileInputCrear" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previewFileCrear(this)" />
+          </div>
+          <div id="uploadPreviewCrear"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+      <button class="btn btn-primary" id="btnEnviarReporte" onclick="crearReporte()">Enviar Reporte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALLE + EVIDENCIAS ══ -->
+<div id="modalDetalle" class="modal">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-header">
+      <h2>Detalle del Reporte</h2>
+      <button class="modal-close" onclick="cerrarDetalle()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-content">
+
+      <div id="detalleContenido"></div>
+
+      <!-- Sección evidencias -->
+      <div class="evidencias-section">
+        <div class="evidencias-header">
+          <h4>
+            <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">attach_file</span>
+            Evidencias
+          </h4>
+          <button class="btn-subir" onclick="toggleUpload()">
+            <span class="material-icons-outlined" style="font-size:16px;">upload</span>
+            Subir evidencia
+          </button>
+        </div>
+
+        <!-- Upload area: SOLO el drop zone, sin botones duplicados -->
+        <div id="uploadArea" style="display:none;margin-bottom:16px;">
+          <div class="upload-drop" onclick="document.getElementById('fileInput').click()">
+            <span class="material-icons-outlined">cloud_upload</span>
+            <p>Haz clic para seleccionar un archivo</p>
+            <p style="font-size:11px;margin-top:4px;">PDF, imágenes, Word, Excel (máx. 10MB)</p>
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previewFile(this)" />
+          </div>
+          <!-- Preview del archivo seleccionado -->
+          <div id="uploadPreview"></div>
+          <!-- Botones aparecen solo cuando hay archivo seleccionado (generados por JS) -->
+          <div id="uploadActions"></div>
+        </div>
+
+        <div id="listaEvidencias">
+          <div style="text-align:center;padding:20px;color:#9ca3af;font-size:13px;">Cargando evidencias...</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ELIMINAR REPORTE ══ -->
+<div id="modalEliminar" class="modal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <h2>Eliminar Reporte</h2>
+      <button class="modal-close" onclick="cerrarEliminar()"><span class="material-icons-outlined">close</span></button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-content">
+      <p style="color:#64748b;font-size:14px;line-height:1.6;">¿Estás seguro? Se eliminarán también todas las evidencias asociadas. Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarEliminar()">Cancelar</button>
+      <button class="btn" style="background:#DC2626;color:white;border:1px solid #DC2626;" onclick="confirmarEliminar()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ELIMINAR EVIDENCIA ══ -->
+<div id="modalEliminarEv" class="modal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header">
+      <h2>Eliminar Evidencia</h2>
+      <button class="modal-close" onclick="cerrarEliminarEv()"><span class="material-icons-outlined">close</span></button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-content">
+      <p style="color:#64748b;font-size:14px;line-height:1.6;">¿Eliminar esta evidencia? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarEliminarEv()">Cancelar</button>
+      <button class="btn" style="background:#DC2626;color:white;border:1px solid #DC2626;" onclick="confirmarEliminarEv()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/empresa/mis-reportes.js"></script>
+</body>
+</html>

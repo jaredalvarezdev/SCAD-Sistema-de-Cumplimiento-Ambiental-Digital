@@ -653,21 +653,26 @@ table td {
   }
 }
 
-/* CENTRAR DATOS EN TABLAS */
-table th, table td {
-  text-align: center;      /* Centrado horizontal */
-  vertical-align: middle;  /* Centrado vertical */
+/* ========================================
+   CENTRAR TABLAS
+   ======================================== */
+
+.table-box table th,
+.table-box table td {
+  text-align: center;
+  vertical-align: middle;
 }
 
-table td span {
-  display: inline-flex;          /* Permite centrar contenido dentro del span */
+/* Columna de título alineada a la izquierda */
+.table-box table th:nth-child(2),
+.table-box table td:nth-child(2) {
+  text-align: left;
+}
+
+/* Contenedor de botones */
+.table-box table td:last-child {
+  display: flex;
   justify-content: center;
   align-items: center;
-}
-
-table td div {
-  display: flex;                 /* Para los botones o grupos de elementos */
-  justify-content: center;       /* Centrado horizontal */
-  align-items: center;           /* Centrado vertical */
-  gap: 8px;                      /* Separación entre botones */
+  gap: 8px;
 }

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar PDF | SCAD</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight { from{transform:translateX(400px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    .page-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px; }
+    .page-header h3 { font-size:24px;font-weight:700;color:#0f172a;margin-bottom:4px; }
+    .page-header p  { color:#64748b;font-size:14px; }
+
+    .tabs { display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid #e5e7eb; }
+    .tab-btn {
+      padding:10px 20px;background:none;border:none;font-size:14px;font-weight:600;
+      color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;
+      margin-bottom:-2px;transition:all 0.2s;display:flex;align-items:center;gap:6px;
+    }
+    .tab-btn:hover { color:#1B6B4F; }
+    .tab-btn.active { color:#1B6B4F;border-bottom-color:#1B6B4F; }
+    .tab-btn .material-icons-outlined { font-size:18px; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    .seccion { background:white;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:24px;overflow:hidden; }
+    .seccion-header {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 24px;border-bottom:1px solid #f1f5f9;background:#fafafa;
+    }
+    .seccion-header h4 { font-size:15px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:8px; }
+    .seccion-header h4 .material-icons-outlined { color:#1B6B4F;font-size:20px; }
+    .seccion-body { padding:20px 24px; }
+
+    .reportes-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px; }
+    .reporte-card {
+      border:1px solid #e5e7eb;border-radius:10px;padding:18px;background:white;
+      transition:all 0.2s;position:relative;overflow:hidden;
+    }
+    .reporte-card:hover { border-color:#1B6B4F;box-shadow:0 4px 16px rgba(27,107,79,0.1);transform:translateY(-1px); }
+    .reporte-card.seleccionado { border-color:#1B6B4F;border-width:2px;background:#f0fdf4; }
+    .reporte-card::before { content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:#1B6B4F; }
+    .reporte-card-titulo { font-size:14px;font-weight:700;color:#0f172a;margin-bottom:8px;padding-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .reporte-card-meta { display:flex;gap:10px;align-items:center;padding-left:8px;margin-bottom:12px;flex-wrap:wrap; }
+    .reporte-card-meta span { font-size:12px;color:#6b7280;display:flex;align-items:center;gap:4px; }
+    .reporte-card-meta .material-icons-outlined { font-size:13px; }
+    .badge-estado { display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600; }
+    .confianza-mini { display:flex;align-items:center;gap:8px;padding-left:8px;margin-bottom:14px; }
+    .confianza-mini span { font-size:12px;color:#6b7280; }
+    .confianza-mini-bar { flex:1;height:5px;background:#e5e7eb;border-radius:999px;overflow:hidden; }
+    .confianza-mini-fill { height:100%;border-radius:999px; }
+    .confianza-mini-val { font-size:12px;font-weight:700;min-width:32px;text-align:right; }
+
+    .btn-generar {
+      width:100%;padding:10px;background:#1B6B4F;color:white;border:none;border-radius:8px;
+      font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .btn-generar:hover { background:#165844; }
+    .btn-generar:disabled { background:#9ca3af;cursor:not-allowed; }
+    .btn-generar.generando { background:#0f5f42;animation:pulse 1.5s ease-in-out infinite; }
+
+    .btn-seleccionar {
+      width:100%;padding:10px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;
+      border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .btn-seleccionar:hover { background:#1B6B4F;color:white;border-color:#1B6B4F; }
+    .btn-seleccionar.activo { background:#1B6B4F;color:white;border-color:#1B6B4F; }
+
+    .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px; }
+    .form-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px; }
+    .form-grid-4 { display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px; }
+    .form-group label {
+      display:block;font-size:12px;font-weight:600;color:#374151;
+      margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px;
+    }
+    .form-group input,.form-group select,.form-group textarea {
+      width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;
+      font-size:13px;color:#0f172a;background:white;transition:border 0.2s;box-sizing:border-box;
+    }
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus {
+      outline:none;border-color:#1B6B4F;box-shadow:0 0 0 3px rgba(27,107,79,0.1);
+    }
+    .form-group textarea { resize:vertical;min-height:80px; }
+
+    .subtitulo-form {
+      font-size:13px;font-weight:700;color:#1B6B4F;
+      display:flex;align-items:center;gap:6px;margin-bottom:14px;
+    }
+    .subtitulo-form .material-icons-outlined { font-size:16px; }
+    .divider-form { border:none;border-top:1px solid #e5e7eb;margin:20px 0; }
+
+    .tabla-registros { width:100%;border-collapse:collapse;margin-top:12px; }
+    .tabla-registros th {
+      text-align:left;font-size:11px;font-weight:600;color:#9ca3af;
+      text-transform:uppercase;letter-spacing:0.5px;padding:8px 10px;border-bottom:2px solid #e5e7eb;
+    }
+    .tabla-registros td {
+      padding:10px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#374151;vertical-align:middle;
+    }
+    .tabla-registros tr:hover td { background:#f9fafb; }
+
+    .historial-tabla { width:100%;border-collapse:collapse; }
+    .historial-tabla th {
+      text-align:left;font-size:11px;font-weight:600;color:#9ca3af;
+      text-transform:uppercase;letter-spacing:0.5px;padding:0 12px 12px;
+    }
+    .historial-tabla td { padding:12px;border-top:1px solid #f1f5f9;font-size:13px;color:#374151;vertical-align:middle; }
+    .historial-tabla tr:hover td { background:#fafafa; }
+
+    .btn-primary {
+      padding:10px 20px;background:#1B6B4F;color:white;border:none;border-radius:8px;
+      font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background 0.2s;
+    }
+    .btn-primary:hover { background:#165844; }
+    .btn-primary:disabled { background:#9ca3af;cursor:not-allowed; }
+
+    .btn-secondary {
+      padding:10px 20px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;
+      border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;
+      display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;
+    }
+    .btn-secondary:hover { background:#e5e7eb; }
+
+    .btn-danger {
+      padding:5px 10px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);
+      border-radius:6px;font-size:12px;color:#DC2626;cursor:pointer;
+      display:inline-flex;align-items:center;gap:4px;transition:all 0.2s;
+    }
+    .btn-danger:hover { background:rgba(220,38,38,0.15); }
+
+    .btn-descargar {
+      display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+      background:rgba(27,107,79,0.08);border:1px solid rgba(27,107,79,0.25);
+      border-radius:6px;font-size:12px;font-weight:600;color:#1B6B4F;
+      cursor:pointer;text-decoration:none;transition:all 0.2s;
+    }
+    .btn-descargar:hover { background:rgba(27,107,79,0.15); }
+
+    .spinner {
+      display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,0.4);
+      border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;
+    }
+    .empty { text-align:center;padding:48px 20px;color:#9ca3af; }
+    .empty .material-icons-outlined { font-size:48px;display:block;margin-bottom:12px; }
+    .empty p { font-size:14px; }
+
+    .info-banner {
+      display:flex;align-items:flex-start;gap:12px;padding:14px 18px;
+      background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;margin-bottom:20px;
+    }
+    .info-banner .material-icons-outlined { color:#2563EB;font-size:20px;flex-shrink:0; }
+    .info-banner p { font-size:13px;color:#1e40af;line-height:1.5;margin:0; }
+
+    .warning-banner {
+      display:flex;align-items:flex-start;gap:12px;padding:14px 18px;
+      background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;margin-bottom:20px;
+    }
+    .warning-banner .material-icons-outlined { color:#D97706;font-size:20px;flex-shrink:0; }
+    .warning-banner p { font-size:13px;color:#92400E;line-height:1.5;margin:0; }
+
+    .reporte-activo-banner {
+      display:none;padding:12px 16px;background:#f0fdf4;border:1px solid #86efac;
+      border-radius:8px;margin-bottom:20px;align-items:center;gap:10px;
+    }
+    .reporte-activo-banner.visible { display:flex; }
+    .reporte-activo-banner .material-icons-outlined { color:#16a34a; }
+    .reporte-activo-banner strong { font-size:13px;color:#15803d; }
+    .reporte-activo-banner button {
+      margin-left:auto;background:none;border:none;cursor:pointer;
+      color:#6b7280;font-size:12px;display:flex;align-items:center;gap:4px;
+    }
+
+    .total-box { display:flex;justify-content:flex-end;margin-top:12px; }
+    .total-box div {
+      background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 20px;text-align:right;
+    }
+    .total-box div span:first-child { font-size:12px;color:#6b7280;display:block; }
+    .total-box div span:last-child { font-size:18px;font-weight:700;color:#1B6B4F; }
+
+    .badge-peligroso {
+      display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/empresa-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a href="/pages/empresa/mis-reportes.html">
+        <span class="material-icons-outlined">description</span>Mis Reportes
+      </a>
+      <a class="active" href="/pages/empresa/generar-pdf.html">
+        <span class="material-icons-outlined">picture_as_pdf</span>Generar PDF
+      </a>
+      <a href="/pages/empresa/notificaciones.html">
+        <span class="material-icons-outlined">notifications</span>Notificaciones
+        <span id="notiCount" style="background:#DC2626;color:white;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+      </a>
+      <a href="/pages/empresa/perfil-empresa.html">
+        <span class="material-icons-outlined">business</span>Mi Perfil
+      </a>
+    </nav>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
+      </div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <div style="display:flex;flex-direction:column;line-height:1.3;">
+            <span class="username" id="nombreUsuario">Usuario</span>
+            <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+
+      <div class="page-header">
+        <div>
+          <h3>Generar PDF</h3>
+          <p>Genera reportes PDF de análisis IA o reportes formales de residuos sólidos</p>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarTab('consolidado', this)">
+          <span class="material-icons-outlined">analytics</span>
+          Análisis de Evidencias
+        </button>
+        <button class="tab-btn" onclick="cambiarTab('residuos', this)">
+          <span class="material-icons-outlined">delete_outline</span>
+          Reporte de Residuos Sólidos
+        </button>
+        <button class="tab-btn" onclick="cambiarTab('historial', this)">
+          <span class="material-icons-outlined">history</span>
+          Historial de PDFs
+        </button>
+      </div>
+
+      <!-- ══ TAB 1: ANÁLISIS CONSOLIDADO ══ -->
+      <div id="tab-consolidado" class="tab-panel active">
+        <div class="info-banner">
+          <span class="material-icons-outlined">info</span>
+          <p>El PDF consolidado incluye el análisis IA de todas las evidencias: fechas detectadas, vigencias, nivel de riesgo y recomendaciones.</p>
+        </div>
+        <div class="seccion">
+          <div class="seccion-header">
+            <h4><span class="material-icons-outlined">description</span>Reportes disponibles</h4>
+            <button onclick="cargarReportes()" style="background:none;border:none;cursor:pointer;color:#6b7280;display:flex;align-items:center;gap:4px;font-size:13px;">
+              <span class="material-icons-outlined" style="font-size:16px;">refresh</span>Actualizar
+            </button>
+          </div>
+          <div class="seccion-body">
+            <div class="reportes-grid" id="reportesGrid">
+              <div class="empty" style="grid-column:1/-1;">
+                <span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span>
+                <p>Cargando reportes...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 2: RESIDUOS SÓLIDOS ══ -->
+      <div id="tab-residuos" class="tab-panel">
+
+        <div class="warning-banner">
+          <span class="material-icons-outlined">warning</span>
+          <p>Este reporte formal se genera conforme a la <strong>LGPGIR</strong> y <strong>NOM-161-SEMARNAT-2011</strong>. Ingresa datos reales y verificados.</p>
+        </div>
+
+        <!-- Paso 1: Seleccionar reporte -->
+        <div class="seccion">
+          <div class="seccion-header">
+            <h4><span class="material-icons-outlined">looks_one</span>Selecciona el reporte</h4>
+          </div>
+          <div class="seccion-body">
+            <div id="reporte-activo-banner" class="reporte-activo-banner">
+              <span class="material-icons-outlined">check_circle</span>
+              <strong id="reporte-activo-nombre">—</strong>
+              <button onclick="deseleccionarReporte()">
+                <span class="material-icons-outlined" style="font-size:15px;">close</span> Cambiar reporte
+              </button>
+            </div>
+            <div id="reportes-residuos-grid" class="reportes-grid">
+              <div class="empty" style="grid-column:1/-1;">
+                <span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span>
+                <p>Cargando...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasos 2-4: Solo visibles al seleccionar reporte -->
+        <div id="form-residuos" style="display:none;">
+
+          <!-- Paso 2: Período -->
+          <div class="seccion">
+            <div class="seccion-header">
+              <h4><span class="material-icons-outlined">looks_two</span>Período e información del responsable</h4>
+            </div>
+            <div class="seccion-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Período inicio *</label>
+                  <input type="date" id="periodo_inicio" />
+                </div>
+                <div class="form-group">
+                  <label>Período fin *</label>
+                  <input type="date" id="periodo_fin" />
+                </div>
+                <div class="form-group">
+                  <label>Nombre del responsable</label>
+                  <input type="text" id="responsable_nombre" placeholder="Ej: Ing. Juan Pérez García" />
+                </div>
+                <div class="form-group">
+                  <label>Cargo del responsable</label>
+                  <input type="text" id="responsable_cargo" placeholder="Ej: Responsable Ambiental" />
+                </div>
+                <div class="form-group">
+                  <label>N° Generador SEMARNAT</label>
+                  <input type="text" id="num_generador" placeholder="Ej: GEM-123456-789" />
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px;">
+                  <input type="checkbox" id="responsable_firma" style="width:auto;accent-color:#1B6B4F;" />
+                  <label for="responsable_firma" style="text-transform:none;font-size:13px;cursor:pointer;margin:0;">El responsable firma este reporte</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observaciones generales</label>
+                <textarea id="observaciones_gral" placeholder="Observaciones adicionales sobre el período..."></textarea>
+              </div>
+              <div style="display:flex;justify-content:flex-end;">
+                <button class="btn-primary" onclick="guardarPeriodo()" id="btnGuardarPeriodo">
+                  <span class="material-icons-outlined" style="font-size:16px;">save</span>
+                  Guardar período
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 3: Registrar residuos -->
+          <div class="seccion">
+            <div class="seccion-header">
+              <h4><span class="material-icons-outlined">looks_3</span>Registrar residuos generados</h4>
+            </div>
+            <div class="seccion-body">
+
+              <div class="subtitulo-form">
+                <span class="material-icons-outlined">add_circle</span>
+                Agregar nuevo residuo
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Tipo de residuo *</label>
+                  <select id="tipo_residuo_id">
+                    <option value="">Selecciona el tipo...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fecha de generación *</label>
+                  <input type="date" id="fecha_generacion" />
+                </div>
+              </div>
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label>Cantidad *</label>
+                  <input type="number" id="cantidad" placeholder="0.00" min="0" step="0.01" />
+                </div>
+                <div class="form-group">
+                  <label>Unidad de medida</label>
+                  <select id="unidad_medida">
+                    <option value="kg">kg</option>
+                    <option value="ton">ton</option>
+                    <option value="litros">litros</option>
+                    <option value="m3">m³</option>
+                    <option value="piezas">piezas</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>N° Manifiesto SEMARNAT</label>
+                  <input type="text" id="num_manifiesto" placeholder="Ej: MAN-2026-001" />
+                </div>
+              </div>
+              <div class="form-grid-4">
+                <div class="form-group">
+                  <label>Método de disposición</label>
+                  <select id="metodo_disposicion">
+                    <option value="">Selecciona...</option>
+                    <option>Reciclaje</option>
+                    <option>Reutilización</option>
+                    <option>Confinamiento controlado</option>
+                    <option>Incineración</option>
+                    <option>Tratamiento biológico</option>
+                    <option>Tratamiento fisicoquímico</option>
+                    <option>Disposición final (relleno sanitario)</option>
+                    <option>Coprocesamiento</option>
+                    <option>Donación</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fecha de disposición</label>
+                  <input type="date" id="fecha_disposicion" />
+                </div>
+                <div class="form-group">
+                  <label>Empresa transportista</label>
+                  <input type="text" id="empresa_transportista" placeholder="Nombre de la empresa" />
+                </div>
+                <div class="form-group">
+                  <label>Destino final</label>
+                  <input type="text" id="destino_final" placeholder="Ubicación o sitio" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observaciones del residuo</label>
+                <input type="text" id="obs_registro" placeholder="Observaciones adicionales..." />
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button class="btn-primary" onclick="agregarRegistro()" id="btnAgregarRegistro">
+                  <span class="material-icons-outlined" style="font-size:16px;">add</span>
+                  Agregar residuo
+                </button>
+              </div>
+
+              <hr class="divider-form">
+
+              <div class="subtitulo-form">
+                <span class="material-icons-outlined">list</span>
+                Residuos registrados
+              </div>
+
+              <div id="tablaRegistrosContainer">
+                <div class="empty" style="padding:24px;">
+                  <span class="material-icons-outlined">inbox</span>
+                  <p>No hay residuos registrados aún</p>
+                </div>
+              </div>
+
+              <div class="total-box" id="totalBox" style="display:none;">
+                <div>
+                  <span>Total registros</span>
+                  <span id="totalCantidad">0</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Paso 4: Generar PDF -->
+          <div class="seccion">
+            <div class="seccion-header">
+              <h4><span class="material-icons-outlined">looks_4</span>Generar PDF formal de residuos</h4>
+            </div>
+            <div class="seccion-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+              <div>
+                <p style="font-size:14px;color:#374151;margin:0 0 4px;">Genera el PDF oficial conforme a LGPGIR y NOM-161-SEMARNAT-2011.</p>
+                <p style="font-size:12px;color:#9ca3af;margin:0;">Asegúrate de guardar el período y agregar al menos un residuo.</p>
+              </div>
+              <button class="btn-primary" onclick="generarPDFResiduos()" id="btnGenerarResiduos" style="padding:12px 24px;font-size:14px;">
+                <span class="material-icons-outlined">picture_as_pdf</span>
+                Generar PDF de Residuos
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ TAB 3: HISTORIAL ══ -->
+      <div id="tab-historial" class="tab-panel">
+        <div class="seccion">
+          <div class="seccion-header">
+            <h4><span class="material-icons-outlined">history</span>Historial de PDFs generados</h4>
+            <button onclick="cargarHistorial()" style="background:none;border:none;cursor:pointer;color:#6b7280;display:flex;align-items:center;gap:4px;font-size:13px;">
+              <span class="material-icons-outlined" style="font-size:16px;">refresh</span>Actualizar
+            </button>
+          </div>
+          <div class="seccion-body" style="padding:0;">
+            <div id="historialContainer">
+              <div class="empty">
+                <span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span>
+                <p>Cargando historial...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div id="alertContainer" class="alert-container"></div>
+<script src="../../js/empresa/generar-pdf.js"></script>
+</body>
+</html>
