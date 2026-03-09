@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad | SCAD</title>
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .filtros-section {
+      display: flex; gap: 10px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;
+    }
+    .input-wrap { position: relative; flex: 1; min-width: 200px; }
+    .input-wrap .material-icons-outlined {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: #9ca3af; font-size: 18px; pointer-events: none;
+    }
+    .filtro-input {
+      width: 100%; padding: 10px 14px 10px 38px; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;
+      background: white; box-sizing: border-box; transition: border-color 0.2s;
+    }
+    .filtro-input:focus { outline: none; border-color: #1B6B4F; box-shadow: 0 0 0 3px rgba(27,107,79,0.08); }
+
+    .filtro-select {
+      padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 14px; font-family: 'Inter', sans-serif; background: white;
+      color: #374151; cursor: pointer; transition: border-color 0.2s;
+    }
+    .filtro-select:focus { outline: none; border-color: #1B6B4F; }
+
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 11px; top: 0; bottom: 0;
+      width: 2px; background: #e5e7eb;
+    }
+
+    .timeline-item {
+      position: relative; margin-bottom: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .timeline-dot {
+      position: absolute; left: -32px; top: 14px;
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid white; box-shadow: 0 0 0 2px #e5e7eb;
+    }
+    .timeline-dot .material-icons-outlined { font-size: 12px; color: white; }
+
+    .timeline-card {
+      background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 14px 16px; transition: box-shadow 0.2s;
+    }
+    .timeline-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+    .timeline-header {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    }
+    .timeline-descripcion {
+      font-size: 14px; color: #0f172a; font-weight: 500; line-height: 1.4; flex: 1;
+    }
+    .timeline-fecha {
+      font-size: 12px; color: #9ca3af; white-space: nowrap; flex-shrink: 0;
+    }
+    .timeline-meta {
+      display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .badge-tabla {
+      display: inline-block; padding: 3px 8px; border-radius: 5px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .tabla-reportes   { background: rgba(37,99,235,0.08);   color: #2563EB; }
+    .tabla-evidencias { background: rgba(245,158,11,0.08);  color: #D97706; }
+    .tabla-usuarios   { background: rgba(139,92,246,0.08);  color: #7C3AED; }
+    .tabla-empresas   { background: rgba(27,107,79,0.08);   color: #1B6B4F; }
+    .tabla-auditorias { background: rgba(220,38,38,0.08);   color: #DC2626; }
+    .tabla-general    { background: #f3f4f6;                color: #6b7280; }
+
+    .timeline-usuario {
+      font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 4px;
+    }
+
+    /* Colores dot por acción */
+    .dot-crear         { background: #1B6B4F; }
+    .dot-editar        { background: #2563EB; }
+    .dot-eliminar      { background: #DC2626; }
+    .dot-cambiar_estado{ background: #F59E0B; }
+    .dot-subir         { background: #7C3AED; }
+    .dot-observacion   { background: #0891B2; }
+    .dot-default       { background: #9ca3af; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #9ca3af;
+    }
+    .empty-state .material-icons-outlined { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    .contador-resultados {
+      font-size: 13px; color: #9ca3af; margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/admin-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a href="/pages/admin/empresas.html">
+        <span class="material-icons-outlined">business</span>Empresas
+      </a>
+      <a href="/pages/admin/usuarios.html">
+        <span class="material-icons-outlined">groups</span>Usuarios
+      </a>
+      <a href="/pages/admin/reportes.html">
+        <span class="material-icons-outlined">description</span>Reportes
+      </a>
+      <a href="/pages/admin/auditorias.html">
+        <span class="material-icons-outlined">assignment</span>Auditorías
+      </a>
+      <a class="active" href="/pages/admin/actividad.html">
+        <span class="material-icons-outlined">history</span>Actividad
+      </a>
+      <a href="/pages/admin/configuracion.html">
+        <span class="material-icons-outlined">settings</span>Configuración
+      </a>
+    </nav>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
+      </div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <span class="username" id="nombreUsuario">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+
+      <div class="page-header" style="margin-bottom:24px;">
+        <div>
+          <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin:0 0 4px;">Actividad</h3>
+          <p style="color:#64748b;font-size:14px;margin:0;">Registro cronológico de todas las acciones del sistema</p>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-section">
+        <div class="input-wrap">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" id="inputBusqueda" class="filtro-input" placeholder="Buscar por descripción o usuario...">
+        </div>
+        <select id="filtroTabla" class="filtro-select" onchange="aplicarFiltros()">
+          <option value="">Todas las áreas</option>
+          <option value="reportes">Reportes</option>
+          <option value="evidencias">Evidencias</option>
+          <option value="usuarios">Usuarios</option>
+          <option value="empresas">Empresas</option>
+          <option value="auditorias">Auditorías</option>
+        </select>
+        <select id="filtroAccion" class="filtro-select" onchange="aplicarFiltros()">
+          <option value="">Todas las acciones</option>
+          <option value="crear">Crear</option>
+          <option value="editar">Editar</option>
+          <option value="eliminar">Eliminar</option>
+          <option value="cambiar_estado">Cambiar estado</option>
+          <option value="subir">Subir archivo</option>
+          <option value="observacion">Observación</option>
+        </select>
+      </div>
+
+      <div class="contador-resultados" id="contadorResultados"></div>
+
+      <!-- Timeline -->
+      <div id="timelineContainer">
+        <div class="empty-state">
+          <span class="material-icons-outlined">hourglass_empty</span>
+          <p>Cargando actividad...</p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div id="alertContainer" class="alert-container"></div>
+
+<script src="../../js/admin/actividad.js"></script>
+</body>
+</html>

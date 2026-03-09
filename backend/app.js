@@ -38,6 +38,7 @@ const historialRoutes         = require('./routes/historial.js');
 const notificacionesRoutes    = require('./routes/notificaciones.js');
 const reportesGeneradosRoutes = require('./routes/reportesGenerados.js');
 const residuosRoutes          = require('./routes/residuos.js');
+const auditoriasRoutes        = require('./routes/auditorias.js'); // ← NUEVO
 
 app.use('/api/usuarios',           usuariosRoutes);
 app.use('/api/empresas',           empresasRoutes);
@@ -48,6 +49,7 @@ app.use('/api/historial',          historialRoutes);
 app.use('/api/notificaciones',     notificacionesRoutes);
 app.use('/api/reportes-generados', reportesGeneradosRoutes);
 app.use('/api/residuos',           residuosRoutes);
+app.use('/api/auditorias',         auditoriasRoutes); // ← NUEVO
 
 // Rutas HTML
 app.get('/', (req, res) => {
@@ -92,7 +94,7 @@ app.get('/pages/admin/auditorias.html', (req, res) => {
 });
 
 app.get('/pages/admin/historial.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages/admin/historial.html'));
+  res.sendFile(path.join(__dirname, '../frontend/pages/admin/actividad.html')); // ← apunta a actividad.html
 });
 
 app.get('/pages/admin/configuracion.html', (req, res) => {

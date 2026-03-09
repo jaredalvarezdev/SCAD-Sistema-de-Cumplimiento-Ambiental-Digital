@@ -1,17 +1,27 @@
 const supabase = require('../config/supabase');
 
 /* ==========================================
-   OBTENER HISTORIAL (por empresa)
+   OBTENER HISTORIAL GLOBAL (admin)
+   Reemplaza el anterior que leía tabla 'historial'
+   Ahora lee de 'historial_cambios'
 ========================================== */
 const obtenerHistorial = async (req, res) => {
   try {
-    const { empresa_id } = req.user; // ✅ corregido
+    const { limit = 200 } = req.query;
 
     const { data, error } = await supabase
-      .from('historial')
-      .select('*')
-      .eq('empresa_id', empresa_id)
-      .order('fecha', { ascending: false });
+      .from('historial_cambios')
+      .select(`
+        id,
+        accion,
+        tabla_afectada,
+        descripcion_detallada,
+        registro_id,
+        fecha,
+        usuarios ( id, nombre, email )
+      `)
+      .order('fecha', { ascending: false })
+      .limit(parseInt(limit));
 
     if (error) throw error;
 
@@ -24,20 +34,22 @@ const obtenerHistorial = async (req, res) => {
 
 /* ==========================================
    CREAR REGISTRO EN HISTORIAL
+   Mantiene compatibilidad con el anterior
 ========================================== */
 const crearRegistroHistorial = async (req, res) => {
   try {
-    const { empresa_id, id: usuario_id } = req.user; // ✅ corregido
-    const { accion, descripcion } = req.body;
+    const { id: usuario_id } = req.user;
+    const { accion, descripcion, tabla_afectada, registro_id } = req.body;
 
     const { data, error } = await supabase
-      .from('historial')
+      .from('historial_cambios')
       .insert([{
-        empresa_id,
         usuario_id,
         accion,
-        descripcion
-        // fecha se guarda sola si tiene DEFAULT NOW()
+        tabla_afectada: tabla_afectada || 'general',
+        descripcion_detallada: descripcion,
+        registro_id: registro_id || null,
+        fecha: new Date().toISOString()
       }])
       .select();
 

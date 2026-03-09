@@ -1,63 +1,366 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auditorías | SCAD</title>
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin-dashboard.css">
-</head>
-<body>
+  <meta charset="UTF-8">
+  <title>Auditorías | SCAD</title>
 
-<div class="dashboard">
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Filtros ── */
+    .filtros-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .filtro-input {
+      flex: 1;
+      padding: 10px 14px 10px 38px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .filtro-input:focus { outline: none; border-color: #1B6B4F; box-shadow: 0 0 0 3px rgba(27,107,79,0.08); }
+    .input-wrap { position: relative; flex: 1; }
+    .input-wrap .material-icons-outlined {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: #9ca3af; font-size: 18px; pointer-events: none;
+    }
+
+    /* ── Tabs ── */
+    .estado-tabs { display: flex; gap: 6px; }
+    .tab-btn {
+      padding: 9px 16px; border-radius: 8px; border: 1px solid #e5e7eb;
+      background: white; font-size: 13px; font-weight: 500; color: #6b7280;
+      cursor: pointer; transition: all 0.15s; font-family: 'Inter', sans-serif; white-space: nowrap;
+    }
+    .tab-btn:hover { border-color: #1B6B4F; color: #1B6B4F; }
+    .tab-btn.active { background: #1B6B4F; color: white; border-color: #1B6B4F; }
+    .tab-btn .count {
+      display: inline-block; border-radius: 999px; font-size: 11px;
+      font-weight: 700; padding: 1px 7px; margin-left: 5px;
+      background: rgba(255,255,255,0.25);
+    }
+    .tab-btn:not(.active) .count { background: #f3f4f6; color: #9ca3af; }
+
+    /* ── Badges ── */
+    .badge-estado {
+      display: inline-block; padding: 5px 10px;
+      border-radius: 6px; font-size: 12px; font-weight: 600;
+    }
+    .estado-pendiente  { background: rgba(245,158,11,0.1);  color: #F59E0B; }
+    .estado-revision   { background: rgba(37,99,235,0.1);   color: #2563EB; }
+    .estado-aprobado   { background: rgba(27,107,79,0.1);   color: #1B6B4F; }
+    .estado-rechazado  { background: rgba(220,38,38,0.1);   color: #DC2626; }
+
+    /* ── Cards de reporte pendiente ── */
+    .reportes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .reporte-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      animation: fadeIn 0.3s ease-out;
+      cursor: pointer;
+    }
+    .reporte-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-color: #d1d5db; }
+    .reporte-card.urgente { border-left: 3px solid #F59E0B; }
+    .reporte-card.rechazado-card { border-left: 3px solid #DC2626; }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-id { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-titulo { font-size: 15px; font-weight: 700; color: #0f172a; margin: 4px 0 6px; line-height: 1.3; }
+    .card-empresa { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
+
+    .card-meta {
+      display: flex; gap: 12px; margin-top: 14px; padding-top: 14px;
+      border-top: 1px solid #f3f4f6; align-items: center;
+    }
+    .card-fecha { font-size: 12px; color: #9ca3af; flex: 1; }
+    .card-confianza { font-size: 13px; font-weight: 700; }
+
+    .card-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .btn-aprobar {
+      flex: 1; padding: 9px; background: rgba(27,107,79,0.1); border: 1px solid rgba(27,107,79,0.3);
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #1B6B4F;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .btn-aprobar:hover { background: #1B6B4F; color: white; }
+    .btn-rechazar {
+      flex: 1; padding: 9px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.25);
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #DC2626;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .btn-rechazar:hover { background: #DC2626; color: white; }
+    .btn-ver-detalle {
+      padding: 9px 12px; background: #f3f4f6; border: 1px solid #e5e7eb;
+      border-radius: 8px; cursor: pointer; color: #374151;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-ver-detalle:hover { background: #e5e7eb; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #9ca3af;
+      grid-column: 1 / -1;
+    }
+    .empty-state .material-icons-outlined { font-size: 48px; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; margin: 0; }
+
+    /* ── Modal ── */
+    .modal-detalle {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0,0,0,0.45);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .modal-detalle.active { display: flex; }
+    .modal-detalle-content {
+      background: white; border-radius: 12px; width: 90%; max-width: 640px;
+      max-height: 88vh; overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid #e5e7eb;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; background: white; z-index: 1;
+    }
+    .modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .modal-close {
+      background: none; border: none; cursor: pointer; color: #9ca3af;
+      display: flex; align-items: center; padding: 4px; border-radius: 6px; transition: all 0.2s;
+    }
+    .modal-close:hover { background: #f3f4f6; color: #374151; }
+    .modal-body { padding: 24px; }
+
+    .detalle-field { margin-bottom: 16px; }
+    .detalle-field label {
+      display: block; font-size: 11px; font-weight: 700; color: #9ca3af;
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
+    }
+    .detalle-field p { font-size: 14px; color: #0f172a; margin: 0; line-height: 1.6; }
+
+    /* ── Sección observaciones ── */
+    .obs-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+    .obs-section-title {
+      font-size: 11px; font-weight: 700; color: #9ca3af;
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px;
+    }
+    .obs-item {
+      padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb;
+      border-radius: 8px; margin-bottom: 8px; animation: fadeIn 0.2s ease-out;
+    }
+    .obs-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .obs-item-autor { font-size: 12px; font-weight: 600; color: #374151; }
+    .obs-item-fecha { font-size: 11px; color: #9ca3af; }
+    .obs-item-texto { font-size: 13px; color: #4b5563; line-height: 1.5; }
+    .obs-item-delete {
+      background: none; border: none; cursor: pointer; color: #d1d5db; padding: 2px;
+      display: flex; align-items: center; transition: color 0.2s;
+    }
+    .obs-item-delete:hover { color: #DC2626; }
+
+    /* ── Nueva observación ── */
+    .nueva-obs { margin-top: 12px; }
+    .nueva-obs textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 13px; font-family: 'Inter', sans-serif; resize: vertical;
+      min-height: 80px; box-sizing: border-box; transition: border-color 0.2s;
+      color: #0f172a;
+    }
+    .nueva-obs textarea:focus { outline: none; border-color: #1B6B4F; box-shadow: 0 0 0 3px rgba(27,107,79,0.08); }
+    .nueva-obs textarea::placeholder { color: #9ca3af; }
+
+    .btn-guardar-obs {
+      margin-top: 8px; padding: 9px 18px; background: #1B6B4F; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+      font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-guardar-obs:hover { background: #165844; }
+    .btn-guardar-obs:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    /* ── Acciones del modal ── */
+    .modal-acciones {
+      display: flex; gap: 10px; margin-top: 20px; padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .modal-footer-close {
+      padding: 10px 20px; background: #f3f4f6; border: 1px solid #e5e7eb;
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+      color: #374151; font-family: 'Inter', sans-serif; transition: all 0.2s;
+    }
+    .modal-footer-close:hover { background: #e5e7eb; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+      border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header"><span class="logo">SCAD</span></div>
-    <nav class="sidebar-menu">
-      <a href="admin-dashboard.html" class="menu-item">Dashboard</a>
-      <a href="usuarios.html" class="menu-item">Usuarios</a>
-      <a href="empresas.html" class="menu-item">Empresas</a>
-      <a href="#" class="menu-item active">Auditorías</a>
-      <a href="reportes.html" class="menu-item">Reportes</a>
-      <a href="roles.html" class="menu-item">Roles</a>
-      <a href="historial.html" class="menu-item">Historial</a>
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/admin-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a href="/pages/admin/empresas.html">
+        <span class="material-icons-outlined">business</span>Empresas
+      </a>
+      <a href="/pages/admin/usuarios.html">
+        <span class="material-icons-outlined">groups</span>Usuarios
+      </a>
+      <a href="/pages/admin/reportes.html">
+        <span class="material-icons-outlined">description</span>Reportes
+      </a>
+      <a class="active" href="/pages/admin/auditorias.html">
+        <span class="material-icons-outlined">assignment</span>Auditorías
+      </a>
+      <a href="/pages/admin/historial.html">
+        <span class="material-icons-outlined">history</span>Actividad
+      </a>
+      <a href="/pages/admin/configuracion.html">
+        <span class="material-icons-outlined">settings</span>Configuración
+      </a>
     </nav>
-    <div class="sidebar-footer">
-      <button id="logoutBtn">Cerrar sesión</button>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
     </div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
     <header class="topbar">
-      <div>
-        <h2>Auditorías</h2>
-        <p class="subtitle">Listado de auditorías registradas</p>
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
       </div>
-      <div class="user-info"><span id="nombreUsuario"></span></div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <span class="username" id="nombreUsuario">Admin</span>
+        </div>
+      </div>
     </header>
 
-    <section class="table-section">
-      <h3>Auditorías recientes</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Empresa</th>
-            <th>Auditor</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody id="tablaAuditorias">
-          <!-- Aquí se llenarán las auditorías vía JS -->
-        </tbody>
-      </table>
+    <section class="content">
+
+      <div class="page-header" style="margin-bottom:24px;">
+        <div>
+          <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin:0 0 4px;">Auditorías</h3>
+          <p style="color:#64748b;font-size:14px;margin:0;">Revisión manual de reportes pendientes y rechazados por IA</p>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-section">
+        <div class="input-wrap">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" id="inputBusqueda" class="filtro-input"
+            placeholder="Buscar por título o empresa...">
+        </div>
+        <div class="estado-tabs">
+          <button class="tab-btn active" data-estado="" onclick="cambiarTab(this)">
+            Todos <span class="count" id="cnt-todos">0</span>
+          </button>
+          <button class="tab-btn" data-estado="1" onclick="cambiarTab(this)">
+            Pendientes <span class="count" id="cnt-1">0</span>
+          </button>
+          <button class="tab-btn" data-estado="4" onclick="cambiarTab(this)">
+            Rechazados <span class="count" id="cnt-4">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid de reportes -->
+      <div class="reportes-grid" id="reportesGrid">
+        <div class="empty-state">
+          <span class="material-icons-outlined">hourglass_empty</span>
+          <p>Cargando reportes para revisión...</p>
+        </div>
+      </div>
+
     </section>
   </main>
 </div>
 
-<script src="/js/admin-dashboard.js"></script>
+<!-- ALERTAS -->
+<div id="alertContainer" class="alert-container"></div>
+
+<!-- MODAL DETALLE + OBSERVACIONES -->
+<div id="modalDetalle" class="modal-detalle">
+  <div class="modal-detalle-content">
+    <div class="modal-header">
+      <h2>Revisión de Reporte</h2>
+      <button class="modal-close" onclick="cerrarModal()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR ACCIÓN -->
+<div id="modalConfirmar" class="modal-detalle">
+  <div class="modal-detalle-content" style="max-width:420px;">
+    <div class="modal-header">
+      <h2 id="confirmarTitulo">Confirmar acción</h2>
+      <button class="modal-close" onclick="cerrarConfirmar()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmarMensaje" style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 20px;"></p>
+      <div style="display:flex;gap:10px;">
+        <button onclick="cerrarConfirmar()"
+          style="flex:1;padding:10px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#374151;font-family:'Inter',sans-serif;">
+          Cancelar
+        </button>
+        <button id="btnConfirmarAccion"
+          style="flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:white;font-family:'Inter',sans-serif;transition:opacity 0.2s;">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin/auditorias.js"></script>
 </body>
 </html>

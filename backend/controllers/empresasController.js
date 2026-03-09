@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
 
 /* ---------------- OBTENER TODAS LAS EMPRESAS CON ESTADÍSTICAS ---------------- */
 const obtenerEmpresas = async (req, res) => {
@@ -112,6 +113,10 @@ const crearEmpresa = async (req, res) => {
 
     if (error) return res.status(500).json({ mensaje: error.message });
 
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(req.user.id, 'empresas', 'crear', data[0].id,
+      `Se creó la empresa "${nombre}"`);
+
     res.status(201).json({ mensaje: "Empresa creada correctamente", data: data[0] });
   } catch (err) {
     console.error(err);
@@ -153,6 +158,10 @@ const editarEmpresa = async (req, res) => {
 
     if (data.length === 0) return res.status(404).json({ mensaje: "Empresa no encontrada" });
 
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(req.user.id, 'empresas', 'editar', parseInt(id),
+      `Se editó la empresa "${nombre}"`);
+
     res.json({ mensaje: "Empresa actualizada correctamente", data: data[0] });
   } catch (err) {
     console.error(err);
@@ -168,6 +177,13 @@ const eliminarEmpresa = async (req, res) => {
     if (!req.user || req.user.rol_id !== 1) {
       return res.status(403).json({ mensaje: "Solo admins pueden eliminar empresas" });
     }
+
+    // ← NUEVO: guardar nombre antes de borrar para el historial
+    const { data: empresa } = await supabase
+      .from('empresas')
+      .select('nombre')
+      .eq('id', id)
+      .single();
 
     // Obtener los usuarios de esta empresa
     const { data: usuarios, error: errorUsuarios } = await supabase
@@ -239,6 +255,10 @@ const eliminarEmpresa = async (req, res) => {
     if (errorEmpresa) {
       return res.status(500).json({ mensaje: 'Error al eliminar empresa' });
     }
+
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(req.user.id, 'empresas', 'eliminar', parseInt(id),
+      `Se eliminó la empresa "${empresa?.nombre}"`);
 
     res.json({ mensaje: "Empresa y sus datos asociados eliminados correctamente" });
   } catch (err) {

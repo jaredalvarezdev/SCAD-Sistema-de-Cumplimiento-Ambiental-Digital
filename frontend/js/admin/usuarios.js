@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Detectar si el usuario logueado es Admin (rol_id === 1)
   esAdmin = usuario.rol_id === 1;
 
   document.getElementById("nombreUsuario").textContent = usuario.nombre;
@@ -194,6 +193,9 @@ function abrirModalAgregar() {
   document.getElementById("modalTexto").textContent = "Completa los datos para crear un nuevo usuario.";
   document.getElementById("modalInputs").style.display = "block";
 
+  // Mostrar campo contraseña solo al crear
+  document.getElementById("grupoPassword").style.display = "block";
+
   // Campo empresa solo visible para admins
   document.getElementById("grupoEmpresa").style.display = esAdmin ? "block" : "none";
 
@@ -214,6 +216,9 @@ function editarUsuario(id) {
   document.getElementById("modalTitulo").textContent = "Editar Usuario";
   document.getElementById("modalTexto").textContent = "Modifica los datos del usuario para actualizar la información.";
   document.getElementById("modalInputs").style.display = "block";
+
+  // Ocultar contraseña al editar
+  document.getElementById("grupoPassword").style.display = "none";
 
   // Campo empresa solo visible para admins
   document.getElementById("grupoEmpresa").style.display = esAdmin ? "block" : "none";
@@ -265,6 +270,7 @@ function cerrarModal() {
 function limpiarFormulario() {
   document.getElementById("inputNombre").value = '';
   document.getElementById("inputEmail").value = '';
+  document.getElementById("inputPassword").value = '';
   document.getElementById("inputRol").value = '1';
   document.getElementById("inputActivo").value = 'true';
   document.getElementById("inputEmpresa").value = '';
@@ -297,14 +303,17 @@ async function confirmarAccion() {
 async function confirmarCrear() {
 
   const token = localStorage.getItem("token");
-  const nombre   = document.getElementById("inputNombre").value.trim();
-  const email    = document.getElementById("inputEmail").value.trim();
-  const rol_id   = parseInt(document.getElementById("inputRol").value);
-  const activo   = document.getElementById("inputActivo").value === "true";
+  const nombre     = document.getElementById("inputNombre").value.trim();
+  const email      = document.getElementById("inputEmail").value.trim();
+  const password   = document.getElementById("inputPassword").value.trim();
+  const rol_id     = parseInt(document.getElementById("inputRol").value);
+  const activo     = document.getElementById("inputActivo").value === "true";
   const empresa_id = esAdmin ? (document.getElementById("inputEmpresa").value || null) : null;
 
-  if (!nombre) { mostrarAlerta("warning", "Validación", "El nombre del usuario es requerido"); return; }
-  if (!email)  { mostrarAlerta("warning", "Validación", "El email es requerido"); return; }
+  if (!nombre)   { mostrarAlerta("warning", "Validación", "El nombre del usuario es requerido"); return; }
+  if (!email)    { mostrarAlerta("warning", "Validación", "El email es requerido"); return; }
+  if (!password) { mostrarAlerta("warning", "Validación", "La contraseña es requerida"); return; }
+  if (password.length < 6) { mostrarAlerta("warning", "Validación", "La contraseña debe tener al menos 6 caracteres"); return; }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) { mostrarAlerta("warning", "Validación", "El email no tiene un formato válido"); return; }
@@ -320,6 +329,7 @@ async function confirmarCrear() {
       body: JSON.stringify({
         nombre,
         email,
+        password,
         rol_id,
         activo,
         empresa_id: empresa_id ? parseInt(empresa_id) : null
@@ -349,10 +359,10 @@ async function confirmarCrear() {
 async function confirmarEditar() {
 
   const token = localStorage.getItem("token");
-  const nombre   = document.getElementById("inputNombre").value.trim();
-  const email    = document.getElementById("inputEmail").value.trim();
-  const rol_id   = parseInt(document.getElementById("inputRol").value);
-  const activo   = document.getElementById("inputActivo").value === "true";
+  const nombre     = document.getElementById("inputNombre").value.trim();
+  const email      = document.getElementById("inputEmail").value.trim();
+  const rol_id     = parseInt(document.getElementById("inputRol").value);
+  const activo     = document.getElementById("inputActivo").value === "true";
   const empresa_id = esAdmin ? (document.getElementById("inputEmpresa").value || null) : null;
 
   if (!nombre) { mostrarAlerta("warning", "Validación", "El nombre del usuario es requerido"); return; }

@@ -1,63 +1,303 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reportes | SCAD</title>
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin-dashboard.css">
-</head>
-<body>
 
-<div class="dashboard">
+<head>
+  <meta charset="UTF-8">
+  <title>Reportes | SCAD</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+
+    /* ── Barra de filtros ── */
+    .filtros-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    .filtro-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .filtro-input:focus {
+      outline: none;
+      border-color: #1B6B4F;
+      box-shadow: 0 0 0 3px rgba(27,107,79,0.08);
+    }
+
+    /* Tabs de estado */
+    .estado-tabs {
+      display: flex;
+      gap: 6px;
+    }
+    .tab-btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { border-color: #1B6B4F; color: #1B6B4F; }
+    .tab-btn.active {
+      background: #1B6B4F;
+      color: white;
+      border-color: #1B6B4F;
+    }
+    .tab-btn .count {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      margin-left: 5px;
+    }
+    .tab-btn:not(.active) .count {
+      background: #f3f4f6;
+      color: #9ca3af;
+    }
+
+    /* ── Badges ── */
+    .badge-estado {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .estado-pendiente { background: rgba(245,158,11,0.1); color: #F59E0B; }
+    .estado-revision  { background: rgba(37,99,235,0.1);  color: #2563EB; }
+    .estado-aprobado  { background: rgba(27,107,79,0.1);  color: #1B6B4F; }
+    .estado-rechazado { background: rgba(220,38,38,0.1);  color: #DC2626; }
+
+    /* ── Modal detalle ── */
+    .modal-detalle {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-detalle.active { display: flex; }
+
+    .modal-detalle-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 620px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-detalle-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
+    }
+    .modal-detalle-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .modal-detalle-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .modal-detalle-close:hover { background: #f3f4f6; color: #374151; }
+
+    .modal-detalle-body { padding: 24px; }
+
+    .detalle-field { margin-bottom: 16px; }
+    .detalle-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 5px;
+    }
+    .detalle-field p {
+      font-size: 14px;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .tabla-vacia {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header"><span class="logo">SCAD</span></div>
-    <nav class="sidebar-menu">
-      <a href="admin-dashboard.html" class="menu-item">Dashboard</a>
-      <a href="usuarios.html" class="menu-item">Usuarios</a>
-      <a href="empresas.html" class="menu-item">Empresas</a>
-      <a href="auditorias.html" class="menu-item">Auditorías</a>
-      <a href="#" class="menu-item active">Reportes</a>
-      <a href="roles.html" class="menu-item">Roles</a>
-      <a href="historial.html" class="menu-item">Historial</a>
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/admin-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a href="/pages/admin/empresas.html">
+        <span class="material-icons-outlined">business</span>Empresas
+      </a>
+      <a href="/pages/admin/usuarios.html">
+        <span class="material-icons-outlined">groups</span>Usuarios
+      </a>
+      <a class="active" href="/pages/admin/reportes.html">
+        <span class="material-icons-outlined">description</span>Reportes
+      </a>
+      <a href="/pages/admin/auditorias.html">
+        <span class="material-icons-outlined">assignment</span>Auditorías
+      </a>
+      <a href="/pages/admin/historial.html">
+        <span class="material-icons-outlined">history</span>Actividad
+      </a>
+      <a href="/pages/admin/configuracion.html">
+        <span class="material-icons-outlined">settings</span>Configuración
+      </a>
     </nav>
-    <div class="sidebar-footer">
-      <button id="logoutBtn">Cerrar sesión</button>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
     </div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
     <header class="topbar">
-      <div>
-        <h2>Reportes</h2>
-        <p class="subtitle">Gestión de reportes generados</p>
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
       </div>
-      <div class="user-info"><span id="nombreUsuario"></span></div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <span class="username" id="nombreUsuario">Admin</span>
+        </div>
+      </div>
     </header>
 
-    <section class="table-section">
-      <h3>Listado de reportes</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Fecha</th>
-            <th>Empresa</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaReportes">
-          <!-- Aquí se llenarán los reportes vía JS -->
-        </tbody>
-      </table>
+    <section class="content">
+
+      <!-- FILTROS: búsqueda + tabs de estado -->
+      <div class="filtros-section">
+        <div style="position:relative;flex:1;">
+          <span class="material-icons-outlined" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:18px;pointer-events:none;">search</span>
+          <input type="text" id="inputBusqueda" class="filtro-input"
+            placeholder="Buscar por título, empresa o usuario..."
+            style="padding-left:38px;width:100%;box-sizing:border-box;">
+        </div>
+
+        <div class="estado-tabs">
+          <button class="tab-btn active" data-estado="" onclick="cambiarTab(this)">
+            Todos <span class="count" id="cnt-todos">0</span>
+          </button>
+          <button class="tab-btn" data-estado="1" onclick="cambiarTab(this)">
+            Pendientes <span class="count" id="cnt-1">0</span>
+          </button>
+          <button class="tab-btn" data-estado="2" onclick="cambiarTab(this)">
+            En revisión <span class="count" id="cnt-2">0</span>
+          </button>
+          <button class="tab-btn" data-estado="3" onclick="cambiarTab(this)">
+            Aprobados <span class="count" id="cnt-3">0</span>
+          </button>
+          <button class="tab-btn" data-estado="4" onclick="cambiarTab(this)">
+            Rechazados <span class="count" id="cnt-4">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLA -->
+      <div class="table-box">
+        <h3 id="titleReportes">Listado de reportes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Empresa</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Confianza IA</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaReportes">
+            <tr><td colspan="8" class="tabla-vacia">Cargando reportes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </section>
   </main>
 </div>
 
-<script src="/js/admin-dashboard.js"></script>
+<!-- ALERTAS -->
+<div id="alertContainer" class="alert-container"></div>
+
+<!-- MODAL DETALLE -->
+<div id="modalDetalle" class="modal-detalle">
+  <div class="modal-detalle-content">
+    <div class="modal-detalle-header">
+      <h2>Detalle del Reporte</h2>
+      <button class="modal-detalle-close" onclick="cerrarDetalle()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-detalle-body" id="modalDetalleBody"></div>
+  </div>
+</div>
+
+<script src="../../js/admin/reportes.js"></script>
 </body>
 </html>

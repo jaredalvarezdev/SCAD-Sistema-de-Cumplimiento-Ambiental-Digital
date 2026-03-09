@@ -139,6 +139,8 @@ async function cargarEmpresas() {
 
     const grid = document.getElementById("gridEmpresas");
     grid.innerHTML = empresas.map(empresa => {
+
+      const cumplimiento = Math.min(empresa.nivel_cumplimiento || 0, 100);
       
       const estadoColor = empresa.estado === 'activa' ? '#1B6B4F' : empresa.estado === 'suspendida' ? '#dc2626' : '#6b7280';
       const estadoTextColor = '#FFFFFF';
@@ -186,10 +188,10 @@ async function cargarEmpresas() {
           <div class="mb-2.5">
             <div class="flex justify-between items-center mb-1">
               <span class="text-xs font-semibold text-gray-700">Cumplimiento</span>
-              <span class="text-xs font-bold text-gray-700">${empresa.nivel_cumplimiento}%</span>
+              <span class="text-xs font-bold text-gray-700">${cumplimiento}%</span>
             </div>
             <div class="w-full rounded-full overflow-hidden" style="background: #e5e7eb; height: 6px;">
-              <div style="width: ${empresa.nivel_cumplimiento}%; background: #1B6B4F; height: 100%;"></div>
+              <div style="width: ${cumplimiento}%; background: #1B6B4F; height: 100%;"></div>
             </div>
           </div>
 

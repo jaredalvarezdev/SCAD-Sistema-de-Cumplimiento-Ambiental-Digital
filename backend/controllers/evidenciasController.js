@@ -1,5 +1,6 @@
 const supabase = require('../config/supabase');
 const { validarEvidenciaIA } = require('../services/IAevidencia');
+const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
 
 /* Sanitizar nombre de archivo */
 function sanitizarNombre(nombre) {
@@ -95,7 +96,7 @@ const subirEvidenciaArchivo = async (req, res) => {
     // Verificar que el reporte existe y pertenece a la empresa
     const { data: reporte, error: errorReporte } = await supabase
       .from('reportes')
-      .select('id, empresa_id')
+      .select('id, empresa_id, titulo')
       .eq('id', reporte_id)
       .single();
 
@@ -158,6 +159,10 @@ const subirEvidenciaArchivo = async (req, res) => {
       ia_procesando: true
     });
 
+    // ← NUEVO: registrar en historial (después de responder para no bloquear)
+    registrarHistorial(usuario_id, 'evidencias', 'subir', evidencia.id,
+      `Se subió la evidencia "${file.originalname}" al reporte "${reporte.titulo}"`);
+
     // Análisis IA en background (no bloquea la respuesta)
     analizarYActualizar(evidencia.id, reporte_id, file.buffer, file.originalname);
 
@@ -181,7 +186,7 @@ const subirEvidencia = async (req, res) => {
 
     const { data: reporte, error: errorReporte } = await supabase
       .from('reportes')
-      .select('id, empresa_id')
+      .select('id, empresa_id, titulo')
       .eq('id', reporte_id)
       .single();
 
@@ -235,6 +240,10 @@ const subirEvidencia = async (req, res) => {
       data: evidencia,
       ia_procesando: true
     });
+
+    // ← NUEVO: registrar en historial
+    registrarHistorial(usuario_id, 'evidencias', 'subir', evidencia.id,
+      `Se subió la evidencia "${nombre_archivo}" al reporte "${reporte.titulo}"`);
 
     // Análisis IA en background si hay buffer disponible
     if (bufferParaIA) {
@@ -291,11 +300,11 @@ const verEvidencias = async (req, res) => {
 const eliminarEvidencia = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rol_id, empresa_id } = req.user;
+    const { id: usuario_id, rol_id, empresa_id } = req.user;
 
     const { data: evidencia, error: errorGet } = await supabase
       .from('evidencias')
-      .select('id, usuario_id, reporte_id, ruta_archivo')
+      .select('id, usuario_id, reporte_id, ruta_archivo, nombre_archivo')
       .eq('id', id)
       .single();
 
@@ -327,6 +336,10 @@ const eliminarEvidencia = async (req, res) => {
 
     const { error } = await supabase.from('evidencias').delete().eq('id', id);
     if (error) return res.status(500).json({ mensaje: 'Error al eliminar la evidencia' });
+
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(usuario_id, 'evidencias', 'eliminar', parseInt(id),
+      `Se eliminó la evidencia "${evidencia.nombre_archivo}"`);
 
     res.json({ mensaje: 'Evidencia eliminada correctamente' });
 

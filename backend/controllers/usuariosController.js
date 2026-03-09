@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
+const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
 
 /* ---------------- REGISTRAR USUARIO + EMPRESA ---------------- */
 const registrarUsuario = async (req, res) => {
@@ -88,6 +89,10 @@ const registrarUsuario = async (req, res) => {
     if (errorUsuario) {
       return res.status(500).json({ mensaje: "Error al crear usuario: " + errorUsuario.message });
     }
+
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(nuevoUsuario[0].id, 'usuarios', 'crear', nuevoUsuario[0].id,
+      `Se registró el usuario "${nombre}" (${email})`);
 
     let mensajeFinal = "Usuario creado correctamente";
     if (rol_id === 2 && !empresa_id_original) {
@@ -245,6 +250,10 @@ const editarUsuario = async (req, res) => {
 
     if (error) return res.status(500).json({ mensaje: error.message });
 
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(req.user.id, 'usuarios', 'editar', parseInt(id),
+      `Se editó el usuario "${nombre}" (${email})`);
+
     res.json({ mensaje: "Usuario actualizado", data });
 
   } catch (err) {
@@ -261,6 +270,13 @@ const eliminarUsuario = async (req, res) => {
     if (req.user.rol_id !== 1) {
       return res.status(403).json({ mensaje: "Solo admins pueden eliminar usuarios" });
     }
+
+    // ← NUEVO: guardar nombre antes de borrar para el historial
+    const { data: usuario } = await supabase
+      .from('usuarios')
+      .select('nombre, email')
+      .eq('id', id)
+      .single();
 
     const { data: reportes } = await supabase
       .from('reportes')
@@ -284,6 +300,10 @@ const eliminarUsuario = async (req, res) => {
       .eq('id', id);
 
     if (errorUsuario) return res.status(500).json({ mensaje: 'Error al eliminar usuario' });
+
+    // ← NUEVO: registrar en historial
+    await registrarHistorial(req.user.id, 'usuarios', 'eliminar', parseInt(id),
+      `Se eliminó el usuario "${usuario?.nombre}" (${usuario?.email})`);
 
     res.json({ mensaje: "Usuario y sus datos asociados eliminados correctamente" });
 
