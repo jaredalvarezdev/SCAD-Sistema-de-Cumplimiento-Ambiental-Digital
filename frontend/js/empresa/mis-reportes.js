@@ -16,10 +16,48 @@ const estadoConfig = {
   4: { label: 'Rechazado',   bg: 'rgba(220,38,38,0.1)',  color: '#DC2626' }
 };
 
-// Estados finales: aprobado (3) y rechazado (4)
 const ESTADOS_FINALES = [3, 4];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Intenta parsear un string JSON. Si falla, devuelve el string original.
+ * Útil para analisis_ia que viene como JSON string del backend.
+ */
+function parsearAnalisisIA(valor) {
+  if (!valor) return null;
+  if (typeof valor === 'object') return valor; // ya es objeto
+  try {
+    return JSON.parse(valor);
+  } catch (e) {
+    return valor; // es texto plano, devolverlo tal cual
+  }
+}
+
+/**
+ * Extrae el texto legible de analisis_ia (puede ser JSON o string plano).
+ * Devuelve el resumen/observacion o el texto directo.
+ */
+function extraerTextoAnalisis(analisisIA) {
+  if (!analisisIA) return null;
+  const parsed = parsearAnalisisIA(analisisIA);
+  if (typeof parsed === 'object' && parsed !== null) {
+    return parsed.resumen || parsed.observacion || parsed.estado_cumplimiento || JSON.stringify(parsed);
+  }
+  return String(parsed);
+}
+
+/**
+ * Extrae el tipo de documento de analisis_ia.
+ */
+function extraerTipoDocumento(analisisIA) {
+  if (!analisisIA) return null;
+  const parsed = parsearAnalisisIA(analisisIA);
+  if (typeof parsed === 'object' && parsed !== null) {
+    return parsed.tipo_documento || null;
+  }
+  return null;
+}
 
 function mostrarAlerta(tipo, titulo, mensaje, duracion = 4000) {
   const container = document.getElementById('alertContainer');
@@ -130,7 +168,6 @@ async function cargarReportes(token) {
     tabla.innerHTML = reportes.map(r => {
       const cfg   = estadoConfig[r.estado_id] || estadoConfig[1];
       const fecha = r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-MX') : '—';
-      // Mostrar confianza: si está en estado final y tiene valor, mostrarlo; si no tiene valor mostrar —
       const conf      = r.confianza_ia != null ? Math.round(r.confianza_ia) : null;
       const confText  = conf != null ? `${conf}%` : '—';
       const confColor = conf == null ? '#9ca3af' : conf >= 70 ? '#1B6B4F' : conf >= 40 ? '#F59E0B' : '#DC2626';
@@ -285,7 +322,6 @@ async function verDetalle(id) {
     document.getElementById('modalDetalle').classList.add('active');
     await cargarEvidencias(token, id);
 
-    // Solo iniciar polling si el reporte NO está en estado final
     const yaFinalizado = ESTADOS_FINALES.includes(r.estado_id) || (r.validacion_ia && r.confianza_ia > 0);
     if (!yaFinalizado) {
       iniciarPolling(id);
@@ -305,8 +341,6 @@ function renderDetalleReporte(r) {
   const conf      = r.confianza_ia != null ? Math.round(r.confianza_ia) : 0;
   const confColor = conf >= 70 ? '#1B6B4F' : conf >= 40 ? '#F59E0B' : '#DC2626';
 
-  // CORREGIDO: reporte ya finalizado (estado 3 o 4) NUNCA muestra spinner,
-  // aunque confianza sea 0. Solo muestra spinner si está pendiente/revisión sin análisis aún.
   const esFinal    = ESTADOS_FINALES.includes(r.estado_id);
   const sinAnalisis = !esFinal && (!r.validacion_ia || (r.confianza_ia == null || r.confianza_ia === 0));
 
@@ -319,10 +353,15 @@ function renderDetalleReporte(r) {
       </div>
     `;
   } else {
-    // Si es final pero sin confianza (edge case), mostrar mensaje neutro
+    // validacion_ia viene como texto plano (la observacion del servicio IA)
     const textoAnalisis = r.validacion_ia || (r.estado_id === 4 ? 'Documento rechazado por análisis IA.' : 'Análisis completado.');
     const confDisplay   = conf > 0 ? `${conf}%` : '—';
     const barWidth      = conf > 0 ? conf : 0;
+
+    // Determinar ícono y color según estado
+    const esAprobado = r.estado_id === 3;
+    const iconoEstado = esAprobado ? 'check_circle' : 'cancel';
+    const colorEstado = esAprobado ? '#1B6B4F' : '#DC2626';
 
     iaBloque = `
       <div class="ia-box">
@@ -330,7 +369,10 @@ function renderDetalleReporte(r) {
           <span class="material-icons-outlined" style="font-size:16px;">smart_toy</span>
           Resultado de validación IA
         </div>
-        <p style="font-size:13px;color:#374151;line-height:1.6;">${textoAnalisis}</p>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+          <span class="material-icons-outlined" style="font-size:18px;color:${colorEstado};flex-shrink:0;margin-top:1px;">${iconoEstado}</span>
+          <p style="font-size:13px;color:#374151;line-height:1.6;margin:0;">${textoAnalisis}</p>
+        </div>
         <div style="margin-top:12px;">
           <div style="display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:4px;">
             <span>Confianza del análisis</span>
@@ -370,7 +412,7 @@ function renderDetalleReporte(r) {
   `;
 }
 
-// ── Polling: refresca análisis IA cada 5s mientras el reporte no esté en estado final ──
+// ── Polling ───────────────────────────────────────────────────────────────────
 
 function iniciarPolling(reporteId) {
   let intentos = 0;
@@ -378,11 +420,7 @@ function iniciarPolling(reporteId) {
 
   pollingInterval = setInterval(async () => {
     intentos++;
-    // Máximo 2 minutos (24 intentos × 5s)
-    if (intentos > 24) {
-      detenerPolling();
-      return;
-    }
+    if (intentos > 24) { detenerPolling(); return; }
 
     const token = localStorage.getItem('token');
     try {
@@ -399,10 +437,9 @@ function iniciarPolling(reporteId) {
         return;
       }
 
-      erroresConsecutivos = 0; // reset en cada respuesta exitosa
+      erroresConsecutivos = 0;
       const r = await res.json();
 
-      // Detener si llegó a estado final
       if (ESTADOS_FINALES.includes(r.estado_id)) {
         renderDetalleReporte(r);
         await cargarReportes(token);
@@ -424,10 +461,7 @@ function iniciarPolling(reporteId) {
 }
 
 function detenerPolling() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-  }
+  if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
 }
 
 function cerrarDetalle() {
@@ -463,6 +497,13 @@ async function cargarEvidencias(token, reporte_id) {
       const icono = getIconoArchivo(ev.tipo_archivo);
       const tieneArchivo = ev.ruta_archivo && ev.ruta_archivo.trim() !== '';
 
+      // ── CORRECCIÓN: parsear analisis_ia que viene como JSON string ──
+      const textoAnalisis = extraerTextoAnalisis(ev.analisis_ia);
+      const tipoDocumento = extraerTipoDocumento(ev.analisis_ia);
+
+      // Línea de subtítulo: tipo de documento + fecha
+      const subtitulo = [tipoDocumento, ev.tipo_archivo || 'archivo'].filter(Boolean).join(' · ') + ` · ${fecha}`;
+
       return `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#f9fafb;">
           <div style="display:flex;align-items:flex-start;gap:12px;flex:1;">
@@ -471,8 +512,11 @@ async function cargarEvidencias(token, reporte_id) {
             </div>
             <div style="flex:1;min-width:0;">
               <div style="font-weight:600;color:#111827;margin-bottom:4px;word-break:break-word;">${ev.nombre_archivo}</div>
-              <div style="font-size:12px;color:#6b7280;">${ev.tipo_archivo || 'archivo'} · ${fecha}</div>
-              ${ev.analisis_ia ? `<div style="font-size:12px;color:#4b5563;margin-top:4px;line-height:1.4;">${ev.analisis_ia.substring(0, 80)}${ev.analisis_ia.length > 80 ? '...' : ''}</div>` : ''}
+              <div style="font-size:12px;color:#6b7280;">${subtitulo}</div>
+              ${textoAnalisis ? `
+                <div style="font-size:12px;color:#4b5563;margin-top:5px;line-height:1.5;background:#fff;border:1px solid #e5e7eb;border-radius:5px;padding:6px 8px;">
+                  ${textoAnalisis.substring(0, 120)}${textoAnalisis.length > 120 ? '...' : ''}
+                </div>` : ''}
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:12px;">
@@ -517,9 +561,7 @@ function toggleUpload() {
   }
 }
 
-function cancelarUpload() {
-  resetUploadArea();
-}
+function cancelarUpload() { resetUploadArea(); }
 
 function previewFile(input) {
   const file = input.files[0];
@@ -586,7 +628,6 @@ async function subirEvidencia() {
       mostrarAlerta('success', 'Subido', 'Evidencia subida. La IA la analizará en breve.');
       resetUploadArea();
       await cargarEvidencias(token, reporteIdActual);
-      // Iniciar polling para refrescar análisis
       detenerPolling();
       iniciarPolling(reporteIdActual);
     } else {

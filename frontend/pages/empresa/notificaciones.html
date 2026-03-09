@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificaciones | SCAD</title>
+
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @keyframes fadeUp  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes shimmer { from { background-position: -600px 0; } to { background-position: 600px 0; } }
+    @keyframes slideInRight { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes popIn   { 0% { transform: scale(.92); opacity: 0; } 70% { transform: scale(1.02); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #64748b;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .stat-chip strong {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-chip .chip-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-chip .chip-icon .material-icons-outlined { font-size: 18px; }
+    .stat-chip.total      .chip-icon { background: #f1f5f9; color: #64748b; }
+    .stat-chip.sin-leer   .chip-icon { background: #fef3c7; color: #d97706; }
+    .stat-chip.solicitudes .chip-icon { background: #ede9fe; color: #7c3aed; }
+
+    /* ── Filters ── */
+    .filters-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid #e2e8f0;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: #64748b;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-pill .material-icons-outlined { font-size: 15px; }
+    .filter-pill:hover { border-color: #1B6B4F; color: #1B6B4F; }
+    .filter-pill.active { background: #1B6B4F; color: #fff; border-color: #1B6B4F; }
+    .filter-pill .cnt {
+      background: rgba(0,0,0,.08);
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .filter-pill.active .cnt { background: rgba(255,255,255,.25); }
+
+    /* ── Main card ── */
+    .noti-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .noti-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fafbfc;
+    }
+    .noti-card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .noti-card-header-left .material-icons-outlined {
+      font-size: 18px;
+      color: #1B6B4F;
+    }
+    .noti-card-header-right {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* ── Notification item ── */
+    .noti-list { list-style: none; padding: 0; margin: 0; }
+
+    .noti-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f8fafc;
+      transition: background .15s;
+      position: relative;
+    }
+    .noti-item:last-child { border-bottom: none; }
+    .noti-item:hover { background: #fafbfc; }
+
+    /* Barra lateral de color para no leídas */
+    .noti-item.no-leida::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+    }
+    .noti-item.no-leida.tipo-aprobado::before   { background: #1B6B4F; }
+    .noti-item.no-leida.tipo-rechazado::before  { background: #dc2626; }
+    .noti-item.no-leida.tipo-revision::before   { background: #d97706; }
+    .noti-item.no-leida.tipo-solicitud::before  { background: #7c3aed; }
+    .noti-item.no-leida.tipo-default::before    { background: #94a3b8; }
+
+    /* Icon bubble */
+    .noti-icon {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .noti-icon .material-icons-outlined { font-size: 18px; }
+    .noti-icon.tipo-aprobado  { background: #dcfce7; color: #16a34a; }
+    .noti-icon.tipo-rechazado { background: #fee2e2; color: #dc2626; }
+    .noti-icon.tipo-revision  { background: #fef3c7; color: #d97706; }
+    .noti-icon.tipo-solicitud { background: #ede9fe; color: #7c3aed; }
+    .noti-icon.tipo-default   { background: #f1f5f9; color: #64748b; }
+
+    /* Content */
+    .noti-content { flex: 1; min-width: 0; }
+    .noti-mensaje {
+      font-size: 13.5px;
+      color: #475569;
+      line-height: 1.55;
+      margin-bottom: 5px;
+      margin: 0 0 5px 0;
+    }
+    .noti-item.no-leida .noti-mensaje { color: #0f172a; font-weight: 500; }
+
+    .noti-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .noti-fecha {
+      font-size: 11.5px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .noti-fecha .material-icons-outlined { font-size: 13px; }
+
+    .noti-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .noti-badge.aprobado  { background: #dcfce7; color: #16a34a; }
+    .noti-badge.rechazado { background: #fee2e2; color: #dc2626; }
+    .noti-badge.revision  { background: #fef3c7; color: #d97706; }
+    .noti-badge.solicitud { background: #ede9fe; color: #7c3aed; }
+
+    /* Unread dot */
+    .unread-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    .tipo-aprobado  .unread-dot { background: #16a34a; }
+    .tipo-rechazado .unread-dot { background: #dc2626; }
+    .tipo-revision  .unread-dot { background: #d97706; }
+    .tipo-solicitud .unread-dot { background: #7c3aed; }
+    .tipo-default   .unread-dot { background: #94a3b8; }
+
+    /* Item actions */
+    .noti-actions {
+      display: flex;
+      gap: 4px;
+      align-items: flex-start;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .noti-item:hover .noti-actions { opacity: 1; }
+    .noti-action-btn {
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #cbd5e1;
+      transition: all .15s;
+    }
+    .noti-action-btn .material-icons-outlined { font-size: 16px; }
+    .noti-action-btn:hover              { background: #f1f5f9; color: #64748b; }
+    .noti-action-btn.read:hover         { background: #dcfce7; color: #16a34a; }
+    .noti-action-btn.trash:hover        { background: #fee2e2; color: #dc2626; }
+
+    /* ── Page action buttons ── */
+    .page-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .btn-outline {
+      padding: 8px 14px;
+      background: none;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s;
+    }
+    .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-outline .material-icons-outlined { font-size: 16px; }
+
+    .btn-outline-danger {
+      padding: 8px 14px;
+      background: none;
+      border: 1.5px solid #fca5a5;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: #dc2626;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s;
+    }
+    .btn-outline-danger:hover { background: #fef2f2; }
+    .btn-outline-danger .material-icons-outlined { font-size: 16px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+      gap: 10px;
+      text-align: center;
+    }
+    .empty-state .material-icons-outlined {
+      font-size: 40px;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .empty-state h4 { font-size: 15px; font-weight: 600; color: #64748b; margin: 0; }
+    .empty-state p  { font-size: 13px; color: #94a3b8; margin: 0; max-width: 260px; }
+
+    /* ── Skeleton ── */
+    .skeleton-item {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f8fafc;
+    }
+    .sk {
+      background: linear-gradient(90deg, #f0f4f8 25%, #f8fafc 50%, #f0f4f8 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s ease infinite;
+      border-radius: 6px;
+    }
+    .sk-circle { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; }
+    .sk-lines  { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+    .sk-long   { height: 13px; width: 72%; }
+    .sk-short  { height: 11px; width: 30%; }
+
+    /* ── Alert container ── */
+    .alert-container {
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      display: flex; flex-direction: column; align-items: flex-end;
+      pointer-events: none;
+      gap: 8px;
+    }
+    .alert-container > * { pointer-events: auto; }
+
+    /* ── Confirm modal ── */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .confirm-overlay.active { display: flex; }
+    .confirm-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.15);
+      animation: popIn .22s ease both;
+    }
+    .confirm-box .confirm-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: #fee2e2;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .confirm-box .confirm-icon .material-icons-outlined { color: #dc2626; font-size: 22px; }
+    .confirm-box h4 { font-size: 16px; font-weight: 600; margin: 0 0 8px; color: #0f172a; }
+    .confirm-box p  { font-size: 13.5px; color: #64748b; margin: 0 0 22px; line-height: 1.5; }
+    .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h2>SCAD</h2>
+      <span>Sistema Ambiental Digital</span>
+    </div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/empresa-dashboard">
+        <span class="material-icons-outlined">dashboard</span>Dashboard
+      </a>
+      <a href="/pages/empresa/mis-reportes.html">
+        <span class="material-icons-outlined">description</span>Mis Reportes
+      </a>
+      <a href="/pages/empresa/generar-pdf.html">
+        <span class="material-icons-outlined">picture_as_pdf</span>Generar PDF
+      </a>
+      <a class="active" href="/pages/empresa/notificaciones.html">
+        <span class="material-icons-outlined">notifications</span>Notificaciones
+        <span id="notiCount" style="background:#DC2626;color:white;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+      </a>
+      <a href="/pages/empresa/perfil-empresa.html">
+        <span class="material-icons-outlined">business</span>Mi Perfil
+      </a>
+    </nav>
+    <div class="logout" id="logoutBtn">
+      <span class="material-icons-outlined">logout</span>Cerrar sesión
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
+      </div>
+      <div class="top-actions">
+        <div class="notification">
+          <span class="material-icons-outlined">notifications</span>
+        </div>
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <div style="display:flex;flex-direction:column;line-height:1.3;">
+            <span class="username" id="nombreUsuario">Usuario</span>
+            <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+
+      <!-- HEADER -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px;">
+        <div>
+          <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;">Notificaciones</h3>
+          <p style="color:#64748b;font-size:14px;">Estado de tus reportes, análisis IA y solicitudes de auditor</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn-outline" onclick="recargar()">
+            <span class="material-icons-outlined">refresh</span>Actualizar
+          </button>
+          <button class="btn-outline" id="btnMarcarTodas" onclick="marcarTodasLeidas()" style="display:none;">
+            <span class="material-icons-outlined">done_all</span>Marcar todas leídas
+          </button>
+          <button class="btn-outline-danger" id="btnEliminarTodas" onclick="confirmarEliminarTodas()" style="display:none;">
+            <span class="material-icons-outlined">delete_sweep</span>Eliminar todas
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-bar">
+        <div class="stat-chip total">
+          <div class="chip-icon"><span class="material-icons-outlined">notifications</span></div>
+          <div>
+            <strong id="statTotal">—</strong>
+            <div style="font-size:12px;">total</div>
+          </div>
+        </div>
+        <div class="stat-chip sin-leer">
+          <div class="chip-icon"><span class="material-icons-outlined">mark_email_unread</span></div>
+          <div>
+            <strong id="statNoLeidas">—</strong>
+            <div style="font-size:12px;">sin leer</div>
+          </div>
+        </div>
+        <div class="stat-chip solicitudes">
+          <div class="chip-icon"><span class="material-icons-outlined">person_add</span></div>
+          <div>
+            <strong id="statSolicitudes">—</strong>
+            <div style="font-size:12px;">solicitudes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filters-row">
+        <button class="filter-pill active" data-filter="todas" onclick="filtrar('todas',this)">
+          <span class="material-icons-outlined">list</span>Todas
+          <span class="cnt" id="cnt-todas">0</span>
+        </button>
+        <button class="filter-pill" data-filter="no-leidas" onclick="filtrar('no-leidas',this)">
+          <span class="material-icons-outlined">fiber_manual_record</span>Sin leer
+          <span class="cnt" id="cnt-no-leidas">0</span>
+        </button>
+        <button class="filter-pill" data-filter="solicitud" onclick="filtrar('solicitud',this)">
+          <span class="material-icons-outlined">person_add</span>Solicitudes
+          <span class="cnt" id="cnt-solicitud">0</span>
+        </button>
+        <button class="filter-pill" data-filter="aprobado" onclick="filtrar('aprobado',this)">
+          <span class="material-icons-outlined">check_circle</span>Aprobados
+          <span class="cnt" id="cnt-aprobado">0</span>
+        </button>
+        <button class="filter-pill" data-filter="rechazado" onclick="filtrar('rechazado',this)">
+          <span class="material-icons-outlined">cancel</span>Rechazados
+          <span class="cnt" id="cnt-rechazado">0</span>
+        </button>
+        <button class="filter-pill" data-filter="revision" onclick="filtrar('revision',this)">
+          <span class="material-icons-outlined">manage_search</span>En revisión
+          <span class="cnt" id="cnt-revision">0</span>
+        </button>
+      </div>
+
+      <!-- LIST -->
+      <div class="noti-card">
+        <div class="noti-card-header">
+          <div class="noti-card-header-left">
+            <span class="material-icons-outlined">notifications_active</span>
+            <span id="headerLabel">Todas las notificaciones</span>
+          </div>
+          <div class="noti-card-header-right" id="headerCount"></div>
+        </div>
+        <ul class="noti-list" id="notiList">
+          <li class="skeleton-item"><div class="sk sk-circle"></div><div class="sk-lines"><div class="sk sk-long"></div><div class="sk sk-short"></div></div></li>
+          <li class="skeleton-item"><div class="sk sk-circle"></div><div class="sk-lines"><div class="sk sk-long"></div><div class="sk sk-short"></div></div></li>
+          <li class="skeleton-item"><div class="sk sk-circle"></div><div class="sk-lines"><div class="sk sk-long"></div><div class="sk sk-short"></div></div></li>
+        </ul>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmOverlay" class="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <span class="material-icons-outlined">delete_forever</span>
+    </div>
+    <h4 id="confirmTitle">Eliminar notificaciones</h4>
+    <p id="confirmMsg">Esta acción no se puede deshacer.</p>
+    <div class="confirm-actions">
+      <button class="btn-outline" onclick="cerrarConfirm()">Cancelar</button>
+      <button class="btn-outline-danger" id="confirmOkBtn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="alertContainer" class="alert-container"></div>
+<script src="../../js/empresa/topBar.js"></script>
+<script src="../../js/empresa/notificaciones.js"></script>
+</body>
+</html>

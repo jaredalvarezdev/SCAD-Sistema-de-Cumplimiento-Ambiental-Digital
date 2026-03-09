@@ -25,7 +25,7 @@ function mostrarAlerta(tipo, titulo, mensaje, duracion = 4000) {
   }[tipo] || { bg: '#fff', text: '#2563EB', border: '#93c5fd', icono: 'info' };
 
   const d = document.createElement('div');
-  d.style.cssText = `background:${cfg.bg};color:${cfg.text};border:1px solid ${cfg.border};padding:14px 16px;border-radius:10px;display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;animation:slideInRight 0.3s ease-out;min-width:280px;max-width:360px;box-shadow:0 4px 16px rgba(0,0,0,0.12);`;
+  d.style.cssText = `background:${cfg.bg};color:${cfg.text};border:1px solid ${cfg.border};padding:14px 16px;border-radius:10px;display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;animation:slideIn 0.3s ease-out;min-width:280px;max-width:360px;box-shadow:0 4px 16px rgba(0,0,0,0.12);font-family:'DM Sans',sans-serif;`;
   d.innerHTML = `
     <span class="material-icons-outlined" style="font-size:20px;flex-shrink:0;margin-top:1px;">${cfg.icono}</span>
     <div><div style="font-weight:700;font-size:13px;">${titulo}</div><div style="font-size:13px;margin-top:2px;opacity:0.9;line-height:1.4;">${mensaje}</div></div>
@@ -42,7 +42,6 @@ function cambiarTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
   btn.classList.add('active');
-
   if (tab === 'historial') cargarHistorial();
   if (tab === 'residuos')  cargarReportesResiduos();
 }
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function cargarReportes() {
   const token = localStorage.getItem('token');
   const grid  = document.getElementById('reportesGrid');
-  grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span><p>Cargando...</p></div>`;
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner-dark" style="margin:0 auto 10px;"></div><p>Cargando...</p></div>`;
 
   try {
     const res = await fetch(`${API_BASE}/api/reportes?limit=100`, {
@@ -93,40 +92,45 @@ async function cargarReportes() {
     const reportes = json.data || [];
 
     if (!reportes.length) {
-      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><span class="material-icons-outlined">description</span><p>No tienes reportes. Crea uno en <a href="/pages/empresa/mis-reportes.html" style="color:#1B6B4F;font-weight:600;">Mis Reportes</a>.</p></div>`;
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><span class="material-icons-outlined">description</span><p>No tienes reportes. Crea uno en <a href="/pages/empresa/mis-reportes.html">Mis Reportes</a>.</p></div>`;
       return;
     }
 
-    grid.innerHTML = reportes.map(r => {
+    grid.innerHTML = reportes.map((r, i) => {
       const cfg   = estadoConfig[r.estado_id] || estadoConfig[1];
       const fecha = r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}) : '—';
       const conf  = r.confianza_ia != null ? Math.round(r.confianza_ia) : null;
-      const confColor = conf == null ? '#9ca3af' : conf >= 70 ? '#1B6B4F' : conf >= 40 ? '#F59E0B' : '#DC2626';
-      const confVal   = conf != null ? `${conf}%` : 'Sin análisis';
+      const confColor = conf == null ? '#94a3b8' : conf >= 70 ? '#1B6B4F' : conf >= 40 ? '#d97706' : '#dc2626';
+      const confVal   = conf != null ? `${conf}%` : '—';
 
       return `
-        <div class="reporte-card">
-          <div class="reporte-card-titulo" title="${r.titulo}">${r.titulo || 'Sin título'}</div>
-          <div class="reporte-card-meta">
-            <span><span class="material-icons-outlined">calendar_today</span>${fecha}</span>
-            <span class="badge-estado" style="background:${cfg.bg};color:${cfg.color};">${cfg.label}</span>
-          </div>
-          <div class="confianza-mini">
-            <span>Confianza IA</span>
-            <div class="confianza-mini-bar">
-              <div class="confianza-mini-fill" style="width:${conf||0}%;background:${confColor};"></div>
+        <div class="reporte-card" style="animation:fadeUp .3s ${i * 0.05}s ease both;">
+          <div class="reporte-card-accent"></div>
+          <div class="reporte-card-inner">
+            <div class="reporte-card-titulo" title="${r.titulo}">${r.titulo || 'Sin título'}</div>
+            <div class="reporte-card-meta">
+              <span class="meta-item">
+                <span class="material-icons-outlined">calendar_today</span>${fecha}
+              </span>
+              <span class="badge-estado" style="background:${cfg.bg};color:${cfg.color};">${cfg.label}</span>
             </div>
-            <span class="confianza-mini-val" style="color:${confColor};">${confVal}</span>
+            <div class="conf-row">
+              <span class="conf-label">Confianza IA</span>
+              <div class="conf-track">
+                <div class="conf-fill" style="width:${conf||0}%;background:${confColor};"></div>
+              </div>
+              <span class="conf-val" style="color:${confColor};">${confVal}</span>
+            </div>
+            <button class="btn-generar" id="btn-${r.id}" onclick="generarPDFConsolidado(${r.id}, '${(r.titulo||'').replace(/'/g,"\\'")}')">
+              <span class="material-icons-outlined" style="font-size:15px;">picture_as_pdf</span>
+              Generar PDF Consolidado
+            </button>
           </div>
-          <button class="btn-generar" id="btn-${r.id}" onclick="generarPDFConsolidado(${r.id}, '${(r.titulo||'').replace(/'/g,"\\'")}')">
-            <span class="material-icons-outlined" style="font-size:16px;">picture_as_pdf</span>
-            Generar PDF Consolidado
-          </button>
         </div>
       `;
     }).join('');
   } catch(err) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;color:#DC2626;"><span class="material-icons-outlined">error</span><p>Error al cargar reportes</p></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;color:#dc2626;"><span class="material-icons-outlined">error</span><p>Error al cargar reportes</p></div>`;
   }
 }
 
@@ -147,19 +151,16 @@ async function generarPDFConsolidado(reporteId, titulo) {
       method: 'POST', headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
-
     if (!res.ok) { mostrarAlerta('danger', 'Error', data.error || data.detalle || 'No se pudo generar el PDF'); return; }
-
     mostrarAlerta('success', '¡PDF generado!', `Reporte consolidado generado con ${data.evidencias_analizadas} evidencia(s).`, 6000);
     if (data.pdf_url) window.open(data.pdf_url, '_blank');
-
   } catch(err) {
     mostrarAlerta('danger', 'Error', 'Error de conexión al generar el PDF');
   } finally {
     generando.delete(reporteId);
     btn.classList.remove('generando');
     btn.disabled  = false;
-    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:16px;">picture_as_pdf</span> Generar PDF Consolidado`;
+    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:15px;">picture_as_pdf</span> Generar PDF Consolidado`;
   }
 }
 
@@ -180,7 +181,6 @@ async function cargarTiposResiduos() {
     const select = document.getElementById('tipo_residuo_id');
     if (!select) return;
 
-    // Agrupar por categoría
     const grupos = {};
     tiposResiduos.forEach(t => {
       const cat = t.categoria || 'General';
@@ -203,7 +203,6 @@ async function cargarTiposResiduos() {
       select.appendChild(group);
     });
 
-    // Al cambiar tipo, actualizar unidad automáticamente
     select.addEventListener('change', () => {
       const opt = select.options[select.selectedIndex];
       if (opt && opt.dataset.unidad) {
@@ -213,7 +212,6 @@ async function cargarTiposResiduos() {
         }
       }
     });
-
   } catch(err) { console.error('[Tipos]', err); }
 }
 
@@ -221,10 +219,9 @@ async function cargarReportesResiduos() {
   const token = localStorage.getItem('token');
   const grid  = document.getElementById('reportes-residuos-grid');
   if (!grid) return;
+  if (reporteResiduoId) return;
 
-  if (reporteResiduoId) return; // ya hay uno seleccionado
-
-  grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span><p>Cargando...</p></div>`;
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner-dark" style="margin:0 auto 10px;"></div><p>Cargando...</p></div>`;
 
   try {
     const res = await fetch(`${API_BASE}/api/reportes?limit=100`, {
@@ -235,47 +232,42 @@ async function cargarReportesResiduos() {
     const reportes = json.data || [];
 
     if (!reportes.length) {
-      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><span class="material-icons-outlined">description</span><p>No tienes reportes disponibles.</p></div>`;
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><span class="material-icons-outlined">description</span><p>No tienes reportes disponibles.</p></div>`;
       return;
     }
 
-    grid.innerHTML = reportes.map(r => {
+    grid.innerHTML = reportes.map((r, i) => {
       const cfg   = estadoConfig[r.estado_id] || estadoConfig[1];
       const fecha = r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}) : '—';
       return `
-        <div class="reporte-card">
-          <div class="reporte-card-titulo" title="${r.titulo}">${r.titulo || 'Sin título'}</div>
-          <div class="reporte-card-meta">
-            <span><span class="material-icons-outlined">calendar_today</span>${fecha}</span>
-            <span class="badge-estado" style="background:${cfg.bg};color:${cfg.color};">${cfg.label}</span>
+        <div class="reporte-card" style="animation:fadeUp .3s ${i * 0.05}s ease both;">
+          <div class="reporte-card-accent"></div>
+          <div class="reporte-card-inner">
+            <div class="reporte-card-titulo" title="${r.titulo}">${r.titulo || 'Sin título'}</div>
+            <div class="reporte-card-meta">
+              <span class="meta-item"><span class="material-icons-outlined">calendar_today</span>${fecha}</span>
+              <span class="badge-estado" style="background:${cfg.bg};color:${cfg.color};">${cfg.label}</span>
+            </div>
+            <button class="btn-seleccionar" onclick="seleccionarReporte(${r.id}, '${(r.titulo||'').replace(/'/g,"\\'")}')">
+              <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
+              Seleccionar
+            </button>
           </div>
-          <button class="btn-seleccionar" onclick="seleccionarReporte(${r.id}, '${(r.titulo||'').replace(/'/g,"\\'")}')">
-            <span class="material-icons-outlined" style="font-size:16px;">check_circle</span>
-            Seleccionar
-          </button>
         </div>
       `;
     }).join('');
   } catch(err) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;color:#DC2626;"><span class="material-icons-outlined">error</span><p>Error al cargar reportes</p></div>`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;color:#dc2626;"><span class="material-icons-outlined">error</span><p>Error al cargar reportes</p></div>`;
   }
 }
 
 async function seleccionarReporte(id, titulo) {
   reporteResiduoId = id;
-
-  // Mostrar banner y ocultar grid
   document.getElementById('reportes-residuos-grid').style.display = 'none';
   document.getElementById('reporte-activo-banner').classList.add('visible');
   document.getElementById('reporte-activo-nombre').textContent = titulo;
-
-  // Mostrar formulario
   document.getElementById('form-residuos').style.display = 'block';
-
-  // Cargar período existente si hay
   await cargarPeriodoExistente(id);
-
-  // Cargar registros existentes
   await cargarRegistros(id);
 }
 
@@ -310,7 +302,6 @@ async function cargarPeriodoExistente(reporteId) {
 
 async function guardarPeriodo() {
   if (!reporteResiduoId) { mostrarAlerta('warning', 'Atención', 'Selecciona un reporte primero'); return; }
-
   const token  = localStorage.getItem('token');
   const inicio = document.getElementById('periodo_inicio').value;
   const fin    = document.getElementById('periodo_fin').value;
@@ -319,7 +310,7 @@ async function guardarPeriodo() {
   if (inicio > fin)    { mostrarAlerta('warning', 'Validación', 'La fecha de inicio no puede ser mayor al fin'); return; }
 
   const btn = document.getElementById('btnGuardarPeriodo');
-  btn.disabled  = true;
+  btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span> Guardando...`;
 
   try {
@@ -327,9 +318,9 @@ async function guardarPeriodo() {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        reporte_id:         reporteResiduoId,
-        periodo_inicio:     inicio,
-        periodo_fin:        fin,
+        reporte_id: reporteResiduoId,
+        periodo_inicio: inicio,
+        periodo_fin: fin,
         responsable_nombre: document.getElementById('responsable_nombre').value,
         responsable_cargo:  document.getElementById('responsable_cargo').value,
         num_generador:      document.getElementById('num_generador').value,
@@ -343,25 +334,24 @@ async function guardarPeriodo() {
   } catch(err) {
     mostrarAlerta('danger', 'Error', 'Error de conexión');
   } finally {
-    btn.disabled  = false;
-    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:16px;">save</span> Guardar período`;
+    btn.disabled = false;
+    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:15px;">save</span> Guardar período`;
   }
 }
 
 async function agregarRegistro() {
   if (!reporteResiduoId) { mostrarAlerta('warning', 'Atención', 'Selecciona un reporte primero'); return; }
-
-  const token        = localStorage.getItem('token');
-  const tipo_id      = document.getElementById('tipo_residuo_id').value;
-  const cantidad     = document.getElementById('cantidad').value;
-  const fecha_gen    = document.getElementById('fecha_generacion').value;
+  const token    = localStorage.getItem('token');
+  const tipo_id  = document.getElementById('tipo_residuo_id').value;
+  const cantidad = document.getElementById('cantidad').value;
+  const fecha_gen = document.getElementById('fecha_generacion').value;
 
   if (!tipo_id)   { mostrarAlerta('warning', 'Validación', 'Selecciona el tipo de residuo'); return; }
   if (!cantidad || parseFloat(cantidad) <= 0) { mostrarAlerta('warning', 'Validación', 'Ingresa una cantidad válida mayor a 0'); return; }
   if (!fecha_gen) { mostrarAlerta('warning', 'Validación', 'Ingresa la fecha de generación'); return; }
 
   const btn = document.getElementById('btnAgregarRegistro');
-  btn.disabled  = true;
+  btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span> Guardando...`;
 
   try {
@@ -384,16 +374,14 @@ async function agregarRegistro() {
     });
     const data = await res.json();
     if (!res.ok) { mostrarAlerta('danger', 'Error', data.error || 'Error al agregar el residuo'); return; }
-
     mostrarAlerta('success', 'Agregado', 'Residuo registrado correctamente');
     limpiarFormRegistro();
     await cargarRegistros(reporteResiduoId);
-
   } catch(err) {
     mostrarAlerta('danger', 'Error', 'Error de conexión');
   } finally {
-    btn.disabled  = false;
-    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:16px;">add</span> Agregar residuo`;
+    btn.disabled = false;
+    btn.innerHTML = `<span class="material-icons-outlined" style="font-size:15px;">add</span> Agregar residuo`;
   }
 }
 
@@ -420,14 +408,14 @@ async function cargarRegistros(reporteId) {
     registrosLocales = data.registros || [];
 
     if (!registrosLocales.length) {
-      container.innerHTML = `<div class="empty" style="padding:24px;"><span class="material-icons-outlined">inbox</span><p>No hay residuos registrados aún</p></div>`;
+      container.innerHTML = `<div class="empty-state" style="padding:24px;"><span class="material-icons-outlined">inbox</span><p>No hay residuos registrados aún</p></div>`;
       totalBox.style.display = 'none';
       return;
     }
 
     let total = 0;
     container.innerHTML = `
-      <table class="tabla-registros">
+      <table class="data-table">
         <thead>
           <tr>
             <th>Tipo de residuo</th>
@@ -442,24 +430,19 @@ async function cargarRegistros(reporteId) {
           ${registrosLocales.map(r => {
             total += parseFloat(r.cantidad);
             const esPeligroso = r.residuos_tipos?.peligroso;
-            const bgPeligroso = esPeligroso
-              ? 'background:rgba(220,38,38,0.1);color:#DC2626;'
+            const bgBadge = esPeligroso
+              ? 'background:rgba(220,38,38,0.1);color:#dc2626;'
               : 'background:rgba(27,107,79,0.1);color:#1B6B4F;';
             return `
               <tr>
-                <td style="font-weight:600;">${r.residuos_tipos?.nombre || '—'}</td>
-                <td>
-                  <span class="badge-peligroso" style="${bgPeligroso}">
-                    ${r.residuos_tipos?.categoria || '—'}
-                  </span>
-                </td>
-                <td style="font-weight:600;">${parseFloat(r.cantidad).toLocaleString('es-MX')} ${r.unidad_medida || 'kg'}</td>
+                <td style="font-weight:600;color:#0a1628;">${r.residuos_tipos?.nombre || '—'}</td>
+                <td><span class="badge-peligroso" style="${bgBadge}">${r.residuos_tipos?.categoria || '—'}</span></td>
+                <td style="font-weight:700;font-family:'DM Mono',monospace;">${parseFloat(r.cantidad).toLocaleString('es-MX')} ${r.unidad_medida || 'kg'}</td>
                 <td>${r.metodo_disposicion || '—'}</td>
-                <td>${r.fecha_generacion ? new Date(r.fecha_generacion+'T12:00:00').toLocaleDateString('es-MX') : '—'}</td>
+                <td style="color:#64748b;">${r.fecha_generacion ? new Date(r.fecha_generacion+'T12:00:00').toLocaleDateString('es-MX') : '—'}</td>
                 <td>
-                  <button class="btn-danger" onclick="eliminarRegistro(${r.id})">
-                    <span class="material-icons-outlined" style="font-size:14px;">delete</span>
-                    Eliminar
+                  <button class="btn-danger-sm" onclick="eliminarRegistro(${r.id})">
+                    <span class="material-icons-outlined" style="font-size:13px;">delete</span>Eliminar
                   </button>
                 </td>
               </tr>
@@ -468,19 +451,16 @@ async function cargarRegistros(reporteId) {
         </tbody>
       </table>
     `;
-
     totalBox.style.display = 'flex';
     document.getElementById('totalCantidad').textContent = `${total.toLocaleString('es-MX', {minimumFractionDigits:2})} (${registrosLocales.length} registros)`;
-
   } catch(err) {
-    container.innerHTML = `<div class="empty" style="color:#DC2626;"><span class="material-icons-outlined">error</span><p>Error al cargar registros</p></div>`;
+    container.innerHTML = `<div class="empty-state" style="color:#dc2626;"><span class="material-icons-outlined">error</span><p>Error al cargar registros</p></div>`;
   }
 }
 
 async function eliminarRegistro(id) {
   if (!confirm('¿Eliminar este registro de residuo?')) return;
   const token = localStorage.getItem('token');
-
   try {
     const res = await fetch(`${API_BASE}/api/residuos/registro/${id}`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
@@ -498,13 +478,10 @@ async function eliminarRegistro(id) {
 
 async function generarPDFResiduos() {
   if (!reporteResiduoId) { mostrarAlerta('warning', 'Atención', 'Selecciona un reporte primero'); return; }
-
   const token = localStorage.getItem('token');
   const btn   = document.getElementById('btnGenerarResiduos');
-
   btn.disabled  = true;
   btn.innerHTML = `<span class="spinner"></span> Generando PDF...`;
-
   mostrarAlerta('info', 'Generando', 'Creando el PDF formal de residuos sólidos...', 8000);
 
   try {
@@ -512,12 +489,9 @@ async function generarPDFResiduos() {
       method: 'POST', headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
-
     if (!res.ok) { mostrarAlerta('danger', 'Error', data.error || data.detalle || 'No se pudo generar el PDF'); return; }
-
     mostrarAlerta('success', '¡PDF generado!', `PDF de residuos generado con ${data.total_registros} registro(s).`, 6000);
     if (data.pdf_url) window.open(data.pdf_url, '_blank');
-
   } catch(err) {
     mostrarAlerta('danger', 'Error', 'Error de conexión al generar el PDF');
   } finally {
@@ -533,7 +507,7 @@ async function generarPDFResiduos() {
 async function cargarHistorial() {
   const token     = localStorage.getItem('token');
   const container = document.getElementById('historialContainer');
-  container.innerHTML = `<div class="empty"><span class="material-icons-outlined" style="animation:spin 1s linear infinite;">autorenew</span><p>Cargando historial...</p></div>`;
+  container.innerHTML = `<div class="empty-state"><div class="spinner-dark" style="margin:0 auto 10px;"></div><p>Cargando historial...</p></div>`;
 
   try {
     const res  = await fetch(`${API_BASE}/api/reportes-generados`, {
@@ -544,12 +518,12 @@ async function cargarHistorial() {
     const lista = json.reportes || [];
 
     if (!lista.length) {
-      container.innerHTML = `<div class="empty"><span class="material-icons-outlined">inbox</span><p>Aún no has generado ningún PDF.</p></div>`;
+      container.innerHTML = `<div class="empty-state"><span class="material-icons-outlined">inbox</span><p>Aún no has generado ningún PDF.</p></div>`;
       return;
     }
 
     container.innerHTML = `
-      <table class="historial-tabla">
+      <table class="historial-table">
         <thead>
           <tr>
             <th>#</th>
@@ -570,25 +544,20 @@ async function cargarHistorial() {
 
             return `
               <tr>
-                <td style="color:#9ca3af;font-size:12px;">#${r.id}</td>
+                <td class="historial-row-num">#${r.id}</td>
                 <td>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <span class="material-icons-outlined" style="font-size:16px;color:${esResiduos?'#E65100':'#1B6B4F'};">
-                      ${esResiduos ? 'delete_outline' : 'analytics'}
-                    </span>
-                    <span style="font-weight:500;font-size:12px;">${tipo}</span>
-                  </div>
+                  <span class="tipo-chip ${esResiduos ? 'residuos' : 'consolidado'}">
+                    <span class="material-icons-outlined">${esResiduos ? 'delete_outline' : 'analytics'}</span>
+                    ${tipo}
+                  </span>
                 </td>
-                <td>${empresa}</td>
-                <td>${usuario}</td>
-                <td style="color:#6b7280;">${fecha}</td>
+                <td style="font-weight:600;">${empresa}</td>
+                <td>${usuario !== '—' ? usuario : '<span style="color:#94a3b8;">—</span>'}</td>
+                <td style="color:#64748b;font-size:12px;">${fecha}</td>
                 <td>
-                  ${r.ruta_archivo ? `
-                    <a href="${r.ruta_archivo}" target="_blank" class="btn-descargar">
-                      <span class="material-icons-outlined">download</span>
-                      Descargar
-                    </a>
-                  ` : '<span style="color:#9ca3af;font-size:12px;">Sin archivo</span>'}
+                  ${r.ruta_archivo
+                    ? `<a href="${r.ruta_archivo}" target="_blank" class="btn-dl"><span class="material-icons-outlined" style="font-size:14px;">download</span>Descargar</a>`
+                    : '<span style="color:#94a3b8;font-size:12px;">Sin archivo</span>'}
                 </td>
               </tr>
             `;
@@ -597,6 +566,6 @@ async function cargarHistorial() {
       </table>
     `;
   } catch(err) {
-    container.innerHTML = `<div class="empty" style="color:#DC2626;"><span class="material-icons-outlined">error</span><p>Error al cargar el historial</p></div>`;
+    container.innerHTML = `<div class="empty-state" style="color:#dc2626;"><span class="material-icons-outlined">error</span><p>Error al cargar el historial</p></div>`;
   }
 }

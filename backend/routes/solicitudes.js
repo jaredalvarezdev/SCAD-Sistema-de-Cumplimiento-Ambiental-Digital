@@ -1,21 +1,22 @@
-const express = require('express')
-const router = express.Router()
-const verificarToken = require('../middlewares/verificarToken')
-const verificarRol = require('../middlewares/verificarRol')
+const express = require('express');
+const router  = express.Router();
+const verificarToken = require('../middlewares/verificarToken');
 
 const {
   listarSolicitudes,
+  solicitarUnion,
   aceptarSolicitud,
-  rechazarSolicitud
-} = require('../controllers/solicitudesController')
+  rechazarSolicitud,
+} = require('../controllers/solicitudesController');
 
-// Listar solicitudes pendientes
-router.get('/:id', verificarToken, verificarRol([1, 2]), listarSolicitudes)
+// Usuario normal solicita unirse a una empresa como auditor
+router.post('/empresa/:empresa_id/solicitar', verificarToken, solicitarUnion);
 
-// Aceptar solicitud
-router.patch('/:empresa_id/aceptar/:solicitud_id', verificarToken, verificarRol([1, 2]), aceptarSolicitud)
+// Empresa ve sus solicitudes pendientes
+router.get('/empresa/:id', verificarToken, listarSolicitudes);
 
-// Rechazar solicitud
-router.patch('/:empresa_id/rechazar/:solicitud_id', verificarToken, verificarRol([1, 2]), rechazarSolicitud)
+// Empresa acepta o rechaza
+router.patch('/empresa/:empresa_id/solicitudes/:solicitud_id/aceptar', verificarToken, aceptarSolicitud);
+router.patch('/empresa/:empresa_id/solicitudes/:solicitud_id/rechazar', verificarToken, rechazarSolicitud);
 
-module.exports = router
+module.exports = router;

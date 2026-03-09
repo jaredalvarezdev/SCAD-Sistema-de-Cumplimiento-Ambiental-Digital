@@ -1,14 +1,22 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
+const verificarToken = require('../middlewares/verificarToken');
+
 const {
   obtenerNotificaciones,
   marcarComoLeida,
-  crearNotificacion
+  marcarTodasLeidas,
+  eliminarNotificacion,
+  eliminarTodas,
+  crearNotificacion,
 } = require('../controllers/notificacionesController');
 
-// Rutas de notificaciones
-router.get('/', obtenerNotificaciones);
-router.post('/', crearNotificacion);
-router.patch('/:id/leida', marcarComoLeida);
+// IMPORTANTE: rutas estáticas ANTES que las dinámicas (/:id)
+router.get('/',                  verificarToken, obtenerNotificaciones);
+router.post('/',                 verificarToken, crearNotificacion);
+router.patch('/leer-todas',      verificarToken, marcarTodasLeidas);
+router.patch('/:id/leida',       verificarToken, marcarComoLeida);
+router.delete('/eliminar-todas', verificarToken, eliminarTodas);
+router.delete('/:id',            verificarToken, eliminarNotificacion);
 
 module.exports = router;
