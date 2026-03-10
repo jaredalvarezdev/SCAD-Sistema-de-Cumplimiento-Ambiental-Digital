@@ -1,7 +1,7 @@
 const supabase = require('../config/supabase');
 const { validarEvidenciaIA } = require('../services/IAevidencia');
 const { registrarHistorial } = require('./historialHelper');
-const { crearNotificacionInterna } = require('./notificacionesController'); // ← NUEVO
+const { crearNotificacionInterna } = require('./notificacionesHelper'); // ← FIX: era notificacionesController
 
 /* ── Helper: obtener id del primer admin ── */
 const getAdminId = async () => {
@@ -81,7 +81,7 @@ const analizarYActualizar = async (evidenciaId, reporteId, buffer, nombreArchivo
 
     console.log(`[IA] Reporte ${reporteId} actualizado → estado ${resultado.nuevo_estado_reporte}`);
 
-    // ← NUEVO: notificar al admin si la IA rechazó (estado_id = 4)
+    // Notificar al admin si la IA rechazó (estado_id = 4)
     if (resultado.nuevo_estado_reporte === 4) {
       const { data: reporte } = await supabase
         .from('reportes')

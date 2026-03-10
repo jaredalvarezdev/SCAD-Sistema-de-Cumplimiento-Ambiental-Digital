@@ -9,7 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     @keyframes slideInRight { from{transform:translateX(400px);opacity:0} to{transform:translateX(0);opacity:1} }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn       { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes popIn        { 0%{transform:scale(.94);opacity:0} 70%{transform:scale(1.01)} 100%{transform:scale(1);opacity:1} }
 
     .select-reporte {
       padding:9px 14px; border:1.5px solid #e2e8f0; border-radius:8px;
@@ -18,55 +19,158 @@
     }
     .select-reporte:focus { border-color:#1B6B4F; }
 
+    /* Grid */
     .ev-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-top:20px; }
     .ev-card {
       background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-      padding:16px; transition:box-shadow .2s; animation:fadeIn .3s ease;
+      padding:16px; transition:box-shadow .2s, transform .15s; animation:fadeIn .3s ease;
+      cursor:pointer; position:relative;
     }
-    .ev-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+    .ev-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.10); transform:translateY(-2px); }
+
+    /* Botón eliminar en card — aparece al hover */
+    .ev-card-del {
+      position:absolute; top:10px; right:10px;
+      width:28px; height:28px; border-radius:6px;
+      background:#fff; border:1px solid #e2e8f0;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; opacity:0; transition:opacity .15s, background .15s, color .15s;
+      color:#94a3b8;
+    }
+    .ev-card-del .material-icons-outlined { font-size:15px; }
+    .ev-card:hover .ev-card-del { opacity:1; }
+    .ev-card-del:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+
     .ev-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
-    .ev-icon.pdf   { background:#fee2e2; color:#dc2626; }
-    .ev-icon.docx  { background:#dbeafe; color:#2563eb; }
-    .ev-icon.xlsx  { background:#d1fae5; color:#059669; }
+    .ev-icon.pdf    { background:#fee2e2; color:#dc2626; }
+    .ev-icon.docx   { background:#dbeafe; color:#2563eb; }
+    .ev-icon.xlsx   { background:#d1fae5; color:#059669; }
     .ev-icon.imagen,.ev-icon.png,.ev-icon.jpg { background:#fef3c7; color:#d97706; }
     .ev-icon.default { background:#f1f5f9; color:#64748b; }
     .ev-nombre { font-size:13px; font-weight:600; color:#0f172a; margin-bottom:4px; word-break:break-all; }
-    .ev-fecha  { font-size:11px; color:#94a3b8; margin-bottom:12px; }
-    .ev-actions { display:flex; gap:8px; }
+    .ev-fecha  { font-size:11px; color:#94a3b8; margin-bottom:10px; }
+    .ev-actions { display:flex; gap:8px; margin-top:10px; }
     .btn-ev {
       padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500;
       cursor:pointer; font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:4px; border:none;
+      text-decoration:none;
     }
     .btn-ev.download { background:#1B6B4F; color:#fff; }
     .btn-ev.download:hover { background:#155a3f; }
 
-    /* Upload area */
+    /* Upload */
     .upload-area {
       border:2px dashed #cbd5e1; border-radius:12px; padding:32px;
-      text-align:center; cursor:pointer; transition:border-color .2s;
-      background:#f8fafc; margin-bottom:24px;
+      text-align:center; cursor:pointer; transition:border-color .2s, background .2s; background:#f8fafc;
     }
-    .upload-area:hover,.upload-area.drag { border-color:#1B6B4F; background:#f0fdf4; }
+    .upload-area:hover, .upload-area.drag { border-color:#1B6B4F; background:#f0fdf4; }
     .upload-area .material-icons-outlined { font-size:40px; color:#94a3b8; display:block; margin-bottom:8px; }
-    .upload-area p { color:#64748b; font-size:14px; margin:0; }
+    .upload-area p    { color:#64748b; font-size:14px; margin:0 0 4px; }
     .upload-area span { font-size:12px; color:#94a3b8; }
 
-    .btn-upload {
-      padding:10px 20px; background:#1B6B4F; color:#fff; border:none;
-      border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
-      font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:6px;
-      margin-top:16px;
+    .archivo-chip {
+      display:flex; align-items:center; gap:8px; padding:10px 14px;
+      background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;
+      font-size:13px; color:#166534; margin-top:12px;
     }
-    .btn-upload:disabled { opacity:.6; cursor:not-allowed; }
+    .archivo-chip .material-icons-outlined { font-size:16px; flex-shrink:0; }
+    .btn-cancelar {
+      margin-left:auto; background:none; border:none; cursor:pointer; color:#64748b;
+      display:flex; align-items:center; padding:2px; border-radius:4px; transition:color .15s;
+    }
+    .btn-cancelar:hover { color:#dc2626; }
+    .btn-cancelar .material-icons-outlined { font-size:16px; }
 
+    .btn-upload {
+      display:inline-flex; align-items:center; gap:6px; padding:10px 22px;
+      background:#1B6B4F; color:#fff; border:none; border-radius:8px;
+      font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+      margin-top:16px; transition:background .15s;
+    }
+    .btn-upload:hover:not(:disabled) { background:#155a3f; }
+    .btn-upload:disabled { opacity:.6; cursor:not-allowed; }
+    .btn-upload .material-icons-outlined { font-size:16px; }
+
+    /* IA badges */
     .ia-badge {
       display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
       border-radius:20px; font-size:11px; font-weight:600; margin-top:6px;
     }
-    .ia-badge.cumple    { background:#d1fae5; color:#059669; }
-    .ia-badge.no-cumple { background:#fee2e2; color:#dc2626; }
-    .ia-badge.revision  { background:#e0f2fe; color:#0284c7; }
+    .ia-badge.cumple     { background:#d1fae5; color:#059669; }
+    .ia-badge.no-cumple  { background:#fee2e2; color:#dc2626; }
+    .ia-badge.revision   { background:#e0f2fe; color:#0284c7; }
     .ia-badge.procesando { background:#f1f5f9; color:#64748b; }
+
+    /* Modal evidencia */
+    .ev-modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.4);
+      display:none; align-items:center; justify-content:center;
+      z-index:1000; backdrop-filter:blur(2px); padding:20px;
+    }
+    .ev-modal-overlay.open { display:flex; }
+    .ev-modal {
+      background:#fff; border-radius:16px; width:100%; max-width:520px;
+      max-height:90vh; overflow-y:auto;
+      box-shadow:0 24px 64px rgba(0,0,0,.18); animation:popIn .22s ease both;
+    }
+    .ev-modal-header {
+      display:flex; align-items:flex-start; gap:12px; padding:20px 20px 16px;
+      border-bottom:1px solid #f1f5f9; position:sticky; top:0; background:#fff; z-index:1;
+    }
+    .ev-modal-header-info { flex:1; min-width:0; }
+    .ev-modal-titulo { font-size:15px; font-weight:700; color:#0f172a; word-break:break-all; margin-bottom:3px; }
+    .ev-modal-fecha  { font-size:12px; color:#94a3b8; }
+    .ev-modal-close {
+      background:none; border:none; cursor:pointer; color:#94a3b8;
+      display:flex; align-items:center; padding:4px; border-radius:6px;
+      transition:color .15s, background .15s; flex-shrink:0;
+    }
+    .ev-modal-close:hover { background:#f1f5f9; color:#374151; }
+    .ev-modal-body { padding:20px; }
+    .ev-modal-section-title {
+      font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase;
+      letter-spacing:.5px; margin-bottom:12px; display:flex; align-items:center; gap:6px;
+    }
+    .ev-modal-section-title .material-icons-outlined { font-size:15px; color:#1B6B4F; }
+
+    /* Botón eliminar en modal */
+    .btn-del-modal {
+      display:inline-flex; align-items:center; gap:6px; padding:9px 18px;
+      background:#fff; color:#dc2626; border:1.5px solid #fca5a5;
+      border-radius:8px; font-size:13px; font-weight:600;
+      cursor:pointer; font-family:'Inter',sans-serif; transition:background .15s;
+    }
+    .btn-del-modal:hover { background:#fef2f2; }
+    .btn-del-modal .material-icons-outlined { font-size:15px; }
+
+    /* Confirm modal */
+    .confirm-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center; z-index:1100;
+      backdrop-filter:blur(2px);
+    }
+    .confirm-overlay.open { display:flex; }
+    .confirm-box {
+      background:#fff; border-radius:14px; padding:28px; max-width:360px; width:90%;
+      box-shadow:0 20px 60px rgba(0,0,0,.15); animation:popIn .2s ease both;
+    }
+    .confirm-box .confirm-icon {
+      width:44px; height:44px; border-radius:10px; background:#fee2e2;
+      display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+    }
+    .confirm-box .confirm-icon .material-icons-outlined { color:#dc2626; font-size:22px; }
+    .confirm-box h4 { font-size:16px; font-weight:700; color:#0f172a; margin:0 0 8px; }
+    .confirm-box p  { font-size:13px; color:#64748b; margin:0 0 22px; line-height:1.5; }
+    .confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+    .btn-cancel-confirm {
+      padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:8px; background:#fff;
+      cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:#475569;
+    }
+    .btn-delete-confirm {
+      padding:8px 16px; background:#dc2626; color:#fff; border:none;
+      border-radius:8px; cursor:pointer; font-family:'Inter',sans-serif;
+      font-size:13px; font-weight:600;
+    }
   </style>
 </head>
 <body>
@@ -108,46 +212,86 @@
         <p style="color:#64748b;font-size:14px;">Sube y revisa evidencias de los reportes de tu empresa</p>
       </div>
 
-      <!-- SELECTOR DE REPORTE -->
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;flex-wrap:wrap;">
         <label style="font-size:13px;font-weight:600;color:#374151;">Reporte:</label>
         <select class="select-reporte" id="selectReporte">
           <option value="">— Selecciona un reporte —</option>
         </select>
       </div>
 
-      <!-- UPLOAD AREA -->
-      <div id="uploadSection" style="display:none;">
+      <div id="uploadSection" style="display:none;margin-bottom:32px;">
         <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
           <span class="material-icons-outlined">cloud_upload</span>
           <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
           <span>PDF, DOCX, XLSX, PNG, JPG — máx. 10 MB</span>
         </div>
         <input type="file" id="fileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
-        <div id="archivoSeleccionado" style="display:none;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;margin-bottom:12px;">
-          <span class="material-icons-outlined" style="vertical-align:middle;font-size:16px;">attach_file</span>
+        <div id="archivoSeleccionado" style="display:none;" class="archivo-chip">
+          <span class="material-icons-outlined">attach_file</span>
           <span id="nombreArchivo">archivo.pdf</span>
+          <button class="btn-cancelar" onclick="cancelarArchivo()" title="Cancelar selección">
+            <span class="material-icons-outlined">close</span>
+          </button>
         </div>
         <button class="btn-upload" id="btnSubir" onclick="subirEvidencia()" disabled>
-          <span class="material-icons-outlined" style="font-size:16px;">upload</span>
-          Subir evidencia
+          <span class="material-icons-outlined">upload</span>Subir evidencia
         </button>
       </div>
 
-      <!-- LISTA EVIDENCIAS -->
       <div id="evidenciasSection" style="display:none;">
         <h4 style="font-size:15px;font-weight:600;color:#0f172a;margin-bottom:4px;">Evidencias del reporte</h4>
         <p id="countEvidencias" style="font-size:13px;color:#94a3b8;margin-bottom:16px;"></p>
-        <div class="ev-grid" id="evGrid">
-          <p style="color:#94a3b8;font-size:13px;">Selecciona un reporte para ver sus evidencias.</p>
-        </div>
+        <div class="ev-grid" id="evGrid"></div>
       </div>
     </section>
   </main>
 </div>
 
-<div id="alertContainer" style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+<!-- MODAL DETALLE EVIDENCIA -->
+<div id="evModal" class="ev-modal-overlay" onclick="if(event.target===this)cerrarModal()">
+  <div class="ev-modal">
+    <div class="ev-modal-header">
+      <div class="ev-modal-header-info">
+        <div class="ev-modal-titulo" id="modalNombre">—</div>
+        <div class="ev-modal-fecha"  id="modalFecha">—</div>
+      </div>
+      <button class="ev-modal-close" onclick="cerrarModal()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="ev-modal-body">
+      <div class="ev-modal-section-title">
+        <span class="material-icons-outlined">psychology</span>Análisis de IA
+      </div>
+      <div id="modalIAContent"></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;display:flex;gap:10px;flex-wrap:wrap;">
+        <a id="modalUrl" href="#" target="_blank" class="btn-ev download" style="flex:1;justify-content:center;padding:10px;">
+          <span class="material-icons-outlined" style="font-size:15px;">download</span>Descargar archivo
+        </a>
+        <button class="btn-del-modal" onclick="confirmarEliminar(evidenciaModalId)">
+          <span class="material-icons-outlined">delete</span>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- CONFIRM ELIMINAR -->
+<div id="confirmOverlay" class="confirm-overlay" onclick="if(event.target===this)cerrarConfirm()">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <span class="material-icons-outlined">delete_forever</span>
+    </div>
+    <h4>Eliminar evidencia</h4>
+    <p>Esta acción no se puede deshacer. El archivo será eliminado permanentemente.</p>
+    <div class="confirm-actions">
+      <button class="btn-cancel-confirm" onclick="cerrarConfirm()">Cancelar</button>
+      <button class="btn-delete-confirm" onclick="ejecutarEliminar()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="alertContainer" style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
 <script src="../../js/user/evidencias.js"></script>
 </body>
 </html>

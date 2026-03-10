@@ -39,14 +39,41 @@
     .noti-btn.del   { background:#fee2e2; color:#dc2626; }
     .noti-btn.del:hover { background:#fecaca; }
 
-    .stats-row { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
-    .stat-chip {
-      background:#fff; border:1px solid #e2e8f0; border-radius:10px;
-      padding:12px 20px; display:flex; align-items:center; gap:10px;
-      font-size:13px; color:#374151;
+    /* ── Stats bar — igual que empresa ── */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
     }
-    .stat-chip strong { font-size:20px; font-weight:700; color:#0f172a; display:block; }
-    .stat-chip .material-icons-outlined { color:#1B6B4F; font-size:22px; }
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #64748b;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .stat-chip strong {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      font-variant-numeric: tabular-nums;
+      display: block;
+    }
+    .stat-chip .chip-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-chip .chip-icon .material-icons-outlined { font-size: 18px; }
+    .stat-chip.total    .chip-icon { background: #f1f5f9; color: #64748b; }
+    .stat-chip.sin-leer .chip-icon { background: #fef3c7; color: #d97706; }
 
     .top-actions-bar { display:flex; gap:10px; margin-bottom:20px; }
     .btn-bar {
@@ -99,10 +126,22 @@
         <p style="color:#64748b;font-size:14px;">Actualizaciones sobre tus reportes y actividad</p>
       </div>
 
-      <!-- STATS -->
+      <!-- STATS — mismo estilo que empresa -->
       <div class="stats-row">
-        <div class="stat-chip"><span class="material-icons-outlined">notifications</span><div><strong id="statTotal">—</strong>Total</div></div>
-        <div class="stat-chip"><span class="material-icons-outlined">mark_email_unread</span><div><strong id="statNoLeidas">—</strong>Sin leer</div></div>
+        <div class="stat-chip total">
+          <div class="chip-icon"><span class="material-icons-outlined">notifications</span></div>
+          <div>
+            <strong id="statTotal">—</strong>
+            <span>Total</span>
+          </div>
+        </div>
+        <div class="stat-chip sin-leer">
+          <div class="chip-icon"><span class="material-icons-outlined">mark_email_unread</span></div>
+          <div>
+            <strong id="statNoLeidas">—</strong>
+            <span>Sin leer</span>
+          </div>
+        </div>
       </div>
 
       <!-- ACCIONES -->
