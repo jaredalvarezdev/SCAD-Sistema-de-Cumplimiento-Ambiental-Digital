@@ -5,37 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seleccionar Empresa | SCAD</title>
   <link rel="stylesheet" href="../css/auth.css">
+  <style>
+    .select-wrapper {
+      position: relative;
+    }
+    .select-wrapper::after {
+      content: '▾';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #64748b;
+      font-size: 14px;
+    }
+    #empresaSelect {
+      width: 100%;
+      padding: 11px 40px 11px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      background: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #empresaSelect:focus {
+      border-color: #1B6B4F;
+      box-shadow: 0 0 0 3px rgba(27,107,79,.08);
+    }
+    #empresaSelect option {
+      color: #1e293b;
+    }
+    #empresaSelect option:disabled {
+      color: #94a3b8;
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
 
   <div class="left-panel">
-
     <div class="form-box">
 
       <div class="logo">SCAD</div>
       <h1>Selecciona la empresa</h1>
       <p class="subtitle">
-        Debes elegir una empresa para solicitar acceso. Tu solicitud será revisada por el cliente principal.
+        Debes elegir una empresa para solicitar acceso. Tu solicitud será revisada por el administrador de la empresa.
       </p>
 
       <form id="empresaForm">
-
         <div class="input-group">
           <label for="empresaSelect">Empresas disponibles</label>
-          <select id="empresaSelect" required>
-            <!-- Opciones cargadas por JS -->
-          </select>
+          <div class="select-wrapper">
+            <select id="empresaSelect" required>
+              <!-- Opciones cargadas por JS -->
+            </select>
+          </div>
         </div>
 
         <button type="submit" class="btn-primary">Solicitar acceso</button>
-
       </form>
 
       <p class="bottom-text">
         ¿Deseas cerrar sesión?
-        <a href="../../public/login.html">Iniciar sesión con otra cuenta</a>
+        <a href="/login">Iniciar sesión con otra cuenta</a>
       </p>
 
     </div>
@@ -50,6 +89,6 @@
 
 </div>
 
-<script src="../js/seleccion-empresa.js"></script>
+<script src="/js/seleccion-empresa.js"></script>
 </body>
 </html>

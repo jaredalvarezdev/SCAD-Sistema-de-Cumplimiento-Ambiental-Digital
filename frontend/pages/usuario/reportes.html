@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes | SCAD</title>
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes slideInRight { from{transform:translateX(400px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    .filter-bar { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
+    .filter-btn {
+      padding:6px 16px; border-radius:20px; border:1.5px solid #e2e8f0;
+      background:#fff; color:#64748b; font-size:13px; font-weight:500;
+      cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s;
+    }
+    .filter-btn.active { background:#1B6B4F; color:#fff; border-color:#1B6B4F; }
+    .filter-btn:hover:not(.active) { border-color:#1B6B4F; color:#1B6B4F; }
+
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge.pendiente { background:#fef3c7; color:#d97706; }
+    .badge.aprobado  { background:#d1fae5; color:#059669; }
+    .badge.rechazado { background:#fee2e2; color:#dc2626; }
+    .badge.revision  { background:#e0f2fe; color:#0284c7; }
+
+    .btn-ver {
+      padding:5px 12px; background:#1B6B4F; color:#fff; border:none;
+      border-radius:6px; font-size:12px; font-weight:500; cursor:pointer;
+      font-family:'Inter',sans-serif; display:inline-flex; align-items:center;
+      gap:4px; text-decoration:none; transition:background .2s;
+    }
+    .btn-ver:hover { background:#155a3f; }
+
+    /* Modal detalle */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center; z-index:1000;
+    }
+    .modal-overlay.active { display:flex; }
+    .modal-box {
+      background:#fff; border-radius:14px; padding:32px;
+      width:100%; max-width:680px; max-height:85vh; overflow-y:auto;
+      animation:fadeIn .25s ease;
+    }
+    .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+    .modal-header h3 { font-size:18px; font-weight:700; color:#0f172a; }
+    .modal-close { background:none; border:none; cursor:pointer; color:#94a3b8; font-size:22px; line-height:1; }
+    .modal-close:hover { color:#0f172a; }
+    .modal-section { margin-bottom:18px; }
+    .modal-section label { font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px; }
+    .modal-section p { font-size:14px; color:#1e293b; line-height:1.6; }
+
+    .ia-box {
+      background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;
+      padding:14px 16px; font-size:13px; color:#166534; line-height:1.6;
+    }
+    .ia-box.rechazado { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .ia-box.revision  { background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+
+    .comments-section { margin-top:24px; border-top:1px solid #f1f5f9; padding-top:20px; }
+    .comment-item {
+      background:#f8fafc; border-radius:8px; padding:12px 14px;
+      margin-bottom:10px; font-size:13px; color:#334155;
+    }
+    .comment-meta { font-size:11px; color:#94a3b8; margin-top:4px; }
+    .comment-form { display:flex; gap:10px; margin-top:14px; }
+    .comment-input {
+      flex:1; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px;
+      font-size:13px; font-family:'Inter',sans-serif; resize:none; outline:none;
+    }
+    .comment-input:focus { border-color:#1B6B4F; }
+    .btn-comment {
+      padding:10px 16px; background:#1B6B4F; color:#fff; border:none;
+      border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+      font-family:'Inter',sans-serif; display:flex; align-items:center; gap:4px;
+    }
+    .btn-comment:disabled { opacity:.6; cursor:not-allowed; }
+
+    .search-input {
+      padding:8px 14px 8px 36px; border:1.5px solid #e2e8f0; border-radius:8px;
+      font-size:13px; font-family:'Inter',sans-serif; outline:none; width:260px;
+    }
+    .search-input:focus { border-color:#1B6B4F; }
+    .search-wrap { position:relative; }
+    .search-wrap .material-icons-outlined {
+      position:absolute; left:10px; top:50%; transform:translateY(-50%);
+      color:#94a3b8; font-size:18px; pointer-events:none;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><h2>SCAD</h2><span>Sistema Ambiental Digital</span></div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/pages/usuario/usuario-dashboard.html"><span class="material-icons-outlined">dashboard</span>Dashboard</a>
+      <a class="active" href="/pages/usuario/reportes.html"><span class="material-icons-outlined">description</span>Reportes</a>
+      <a href="/pages/usuario/evidencias.html"><span class="material-icons-outlined">attach_file</span>Evidencias</a>
+      <a href="/pages/usuario/comentarios.html"><span class="material-icons-outlined">comment</span>Comentarios</a>
+      <a href="/pages/usuario/notificaciones.html">
+        <span class="material-icons-outlined">notifications</span>Notificaciones
+        <span id="notiCount" style="background:#DC2626;color:white;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+      </a>
+      <a href="/pages/usuario/perfil-usuario.html"><span class="material-icons-outlined">person</span>Mi Perfil</a>
+    </nav>
+    <div class="logout" id="logoutBtn"><span class="material-icons-outlined">logout</span>Cerrar sesión</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="material-icons-outlined">search</span>
+        <input type="text" placeholder="Buscar en SCAD..." />
+      </div>
+      <div class="top-actions">
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <div style="display:flex;flex-direction:column;line-height:1.3;">
+            <span class="username" id="nombreUsuario">Usuario</span>
+            <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div style="margin-bottom:28px;">
+        <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;">Reportes de la Empresa</h3>
+        <p style="color:#64748b;font-size:14px;">Revisa y comenta los reportes de tu empresa asignada</p>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" class="search-input" id="buscarInput" placeholder="Buscar reporte...">
+        </div>
+        <button class="filter-btn active" onclick="filtrar('todos', this)">Todos</button>
+        <button class="filter-btn" onclick="filtrar('pendiente', this)">Pendientes</button>
+        <button class="filter-btn" onclick="filtrar('aprobado', this)">Aprobados</button>
+        <button class="filter-btn" onclick="filtrar('rechazado', this)">Rechazados</button>
+        <button class="filter-btn" onclick="filtrar('revision', this)">En revisión</button>
+      </div>
+
+      <!-- TABLA -->
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:center;">ID</th>
+              <th>Título</th>
+              <th style="text-align:center;">Confianza IA</th>
+              <th style="text-align:center;">Fecha</th>
+              <th style="text-align:center;">Estado</th>
+              <th style="text-align:center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaReportes">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">Cargando reportes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitulo">Detalle del Reporte</h3>
+      <button class="modal-close" onclick="cerrarModal()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-section">
+      <label>Descripción</label>
+      <p id="modalDescripcion">—</p>
+    </div>
+    <div class="modal-section">
+      <label>Estado</label>
+      <span id="modalEstado"></span>
+    </div>
+    <div class="modal-section">
+      <label>Análisis IA</label>
+      <div class="ia-box" id="modalIA">—</div>
+    </div>
+    <div class="modal-section">
+      <label>Confianza IA</label>
+      <p id="modalConfianza">—</p>
+    </div>
+
+    <!-- COMENTARIOS -->
+    <div class="comments-section">
+      <h4 style="font-size:14px;font-weight:600;color:#0f172a;margin-bottom:12px;">Comentarios</h4>
+      <div id="listaComentarios"><p style="color:#94a3b8;font-size:13px;">Cargando...</p></div>
+      <div class="comment-form">
+        <textarea class="comment-input" id="nuevoComentario" rows="2" placeholder="Escribe tu comentario como auditor..."></textarea>
+        <button class="btn-comment" id="btnComentario" onclick="enviarComentario()">
+          <span class="material-icons-outlined" style="font-size:16px;">send</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="alertContainer" style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+
+<script src="../../js/user/reportes.js"></script>
+</body>
+</html>

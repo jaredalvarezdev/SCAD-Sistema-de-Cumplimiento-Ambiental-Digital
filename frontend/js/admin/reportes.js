@@ -141,8 +141,7 @@ function renderizarReportes(reportes) {
         <td style="text-align:center;font-weight:700;color:${confColor};">${confText}</td>
         <td>
           <button onclick="verDetalle(${r.id})"
-            style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:#374151;display:inline-flex;align-items:center;gap:5px;"
-            onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+            style="padding:6px 14px;background:#1B6B4F;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px;">
             <span class="material-icons-outlined" style="font-size:15px;">visibility</span>Ver
           </button>
         </td>

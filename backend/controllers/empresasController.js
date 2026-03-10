@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
 const { registrarHistorial } = require('./historialHelper');
-const { crearNotificacionInterna } = require('./notificacionesController'); // ← NUEVO
+const { crearNotificacionInterna } = require('./notificacionesHelper'); // ← CORREGIDO
 
 /* ── Helper: obtener id del primer admin ── */
 const getAdminId = async () => {
@@ -15,6 +15,25 @@ const obtenerEmpresas = async (req, res) => {
     const { data, error } = await supabase
       .from('empresas')
       .select('*')
+      .order('nombre', { ascending: true });
+
+    if (error) return res.status(500).json({ mensaje: error.message });
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: "Error del servidor" });
+  }
+};
+
+/* ---------------- OBTENER EMPRESAS DISPONIBLES (para auditores) ---------------- */
+// Devuelve solo id y nombre — usado en seleccion-empresa.html para el select
+const obtenerEmpresasDisponibles = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('empresas')
+      .select('id, nombre')
+      .eq('estado', 'activa')
       .order('nombre', { ascending: true });
 
     if (error) return res.status(500).json({ mensaje: error.message });
@@ -124,7 +143,6 @@ const crearEmpresa = async (req, res) => {
     await registrarHistorial(req.user.id, 'empresas', 'crear', data[0].id,
       `Se creó la empresa "${nombre}"`);
 
-    // ← NUEVO: notificar al admin
     const adminId = await getAdminId();
     if (adminId) {
       await crearNotificacionInterna(adminId,
@@ -249,6 +267,7 @@ const eliminarEmpresa = async (req, res) => {
 
 module.exports = {
   obtenerEmpresas,
+  obtenerEmpresasDisponibles, // ← NUEVO
   obtenerEstadisticasEmpresas,
   obtenerEmpresa,
   crearEmpresa,

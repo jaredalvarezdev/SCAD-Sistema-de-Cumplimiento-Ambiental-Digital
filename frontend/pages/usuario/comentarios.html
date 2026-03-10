@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comentarios | SCAD</title>
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes slideInRight { from{transform:translateX(400px);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    .comment-card {
+      background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+      padding:18px 20px; margin-bottom:12px; animation:fadeIn .3s ease;
+      transition:box-shadow .2s;
+    }
+    .comment-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.06); }
+    .comment-reporte {
+      font-size:12px; font-weight:600; color:#1B6B4F;
+      display:inline-flex; align-items:center; gap:4px; margin-bottom:8px;
+      background:#f0fdf4; padding:3px 10px; border-radius:20px;
+    }
+    .comment-msg { font-size:14px; color:#1e293b; line-height:1.6; margin-bottom:10px; }
+    .comment-footer { display:flex; align-items:center; justify-content:space-between; }
+    .comment-fecha { font-size:11px; color:#94a3b8; display:flex; align-items:center; gap:4px; }
+    .comment-actions { display:flex; gap:8px; }
+    .btn-action {
+      padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500;
+      cursor:pointer; font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:4px; border:none;
+    }
+    .btn-action.edit   { background:#f1f5f9; color:#374151; }
+    .btn-action.edit:hover { background:#e2e8f0; }
+    .btn-action.del    { background:#fee2e2; color:#dc2626; }
+    .btn-action.del:hover { background:#fecaca; }
+
+    /* Inline edit */
+    .edit-area {
+      width:100%; padding:8px 12px; border:1.5px solid #1B6B4F;
+      border-radius:8px; font-size:13px; font-family:'Inter',sans-serif;
+      resize:vertical; outline:none; margin-bottom:8px;
+    }
+    .btn-save {
+      padding:6px 14px; background:#1B6B4F; color:#fff; border:none;
+      border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;
+      font-family:'Inter',sans-serif; margin-right:6px;
+    }
+    .btn-cancel-edit {
+      padding:6px 14px; background:#f1f5f9; color:#374151; border:none;
+      border-radius:6px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif;
+    }
+
+    .empty-state { text-align:center; padding:60px 20px; color:#94a3b8; }
+    .empty-state .material-icons-outlined { font-size:48px; display:block; margin-bottom:12px; opacity:.4; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo"><h2>SCAD</h2><span>Sistema Ambiental Digital</span></div>
+    <div class="divider"></div>
+    <nav class="menu">
+      <a href="/pages/usuario/usuario-dashboard.html"><span class="material-icons-outlined">dashboard</span>Dashboard</a>
+      <a href="/pages/usuario/reportes.html"><span class="material-icons-outlined">description</span>Reportes</a>
+      <a href="/pages/usuario/evidencias.html"><span class="material-icons-outlined">attach_file</span>Evidencias</a>
+      <a class="active" href="/pages/usuario/comentarios.html"><span class="material-icons-outlined">comment</span>Comentarios</a>
+      <a href="/pages/usuario/notificaciones.html">
+        <span class="material-icons-outlined">notifications</span>Notificaciones
+        <span id="notiCount" style="background:#DC2626;color:white;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+      </a>
+      <a href="/pages/usuario/perfil-usuario.html"><span class="material-icons-outlined">person</span>Mi Perfil</a>
+    </nav>
+    <div class="logout" id="logoutBtn"><span class="material-icons-outlined">logout</span>Cerrar sesión</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="search"><span class="material-icons-outlined">search</span><input type="text" placeholder="Buscar en SCAD..."/></div>
+      <div class="top-actions">
+        <div class="user">
+          <div class="avatar"><span class="material-icons-outlined">person</span></div>
+          <div style="display:flex;flex-direction:column;line-height:1.3;">
+            <span class="username" id="nombreUsuario">Usuario</span>
+            <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div style="margin-bottom:28px;">
+        <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:6px;">Mis Comentarios</h3>
+        <p style="color:#64748b;font-size:14px;">Todos los comentarios que has dejado en los reportes</p>
+      </div>
+
+      <div id="listaComentarios">
+        <div class="empty-state">
+          <span class="material-icons-outlined">hourglass_empty</span>
+          <p>Cargando comentarios...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="alertContainer" style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+<script src="../../js/user/comentarios.js"></script>
+</body>
+</html>

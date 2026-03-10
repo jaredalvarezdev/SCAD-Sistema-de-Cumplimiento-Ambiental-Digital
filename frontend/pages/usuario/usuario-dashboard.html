@@ -1,149 +1,276 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Usuario Dashboard | SCAD</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Auditor | SCAD</title>
 
-<link rel="stylesheet" href="../../css/dashboard.css">
-<!-- CSS ESPECÍFICO USUARIO -->
-<link rel="stylesheet" href="../../css/usuario-dashboard.css">
+  <link rel="stylesheet" href="../../css/admin/dashboard.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+  <style>
+    @keyframes slideInRight {
+      from { transform: translateX(400px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .empresa-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(27,107,79,.1);
+      color: #1B6B4F;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .empresa-badge .material-icons-outlined {
+      font-size: 14px;
+    }
+
+    /* Tabla */
+    #tablaReportes td,
+    #tablaReportes th {
+      text-align: left;
+      vertical-align: middle;
+    }
+    #tablaReportes td:nth-child(1),
+    #tablaReportes td:nth-child(3),
+    #tablaReportes td:nth-child(4),
+    #tablaReportes td:nth-child(5) {
+      text-align: center;
+    }
+    #tablaReportes thead th:nth-child(1),
+    #tablaReportes thead th:nth-child(3),
+    #tablaReportes thead th:nth-child(4),
+    #tablaReportes thead th:nth-child(5) {
+      text-align: center;
+    }
+
+    .badge-estado {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-estado.pendiente  { background: #fef3c7; color: #d97706; }
+    .badge-estado.aprobado   { background: #d1fae5; color: #059669; }
+    .badge-estado.rechazado  { background: #fee2e2; color: #dc2626; }
+    .badge-estado.revision   { background: #e0f2fe; color: #0284c7; }
+
+    .btn-ver {
+      padding: 5px 12px;
+      background: #1B6B4F;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-ver:hover { background: #155a3f; }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, #1B6B4F 0%, #134d39 100%);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn .5s ease;
+    }
+    .welcome-banner h3 {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .welcome-banner p {
+      color: rgba(255,255,255,.75);
+      font-size: 13px;
+    }
+    .welcome-banner .material-icons-outlined {
+      font-size: 48px;
+      color: rgba(255,255,255,.25);
+    }
+  </style>
 </head>
+
 <body>
+  <div class="layout">
 
-<div class="dashboard">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo">
+        <h2>SCAD</h2>
+        <span>Sistema Ambiental Digital</span>
+      </div>
 
-  <!-- ============================= -->
-  <!-- SIDEBAR -->
-  <!-- ============================= -->
+      <div class="divider"></div>
 
-  <aside class="sidebar">
+      <nav class="menu">
+        <a class="active" href="/pages/usuario/usuario-dashboard.html">
+          <span class="material-icons-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="/pages/usuario/reportes.html">
+          <span class="material-icons-outlined">description</span>
+          Reportes
+        </a>
+        <a href="/pages/usuario/evidencias.html">
+          <span class="material-icons-outlined">attach_file</span>
+          Evidencias
+        </a>
+        <a href="/pages/usuario/comentarios.html">
+          <span class="material-icons-outlined">comment</span>
+          Comentarios
+        </a>
+        <a href="/pages/usuario/notificaciones.html">
+          <span class="material-icons-outlined">notifications</span>
+          Notificaciones
+          <span id="notiCount" style="
+            background:#DC2626;color:white;border-radius:999px;
+            font-size:11px;padding:1px 7px;margin-left:auto;display:none;">0</span>
+        </a>
+        <a href="/pages/usuario/perfil-usuario.html">
+          <span class="material-icons-outlined">person</span>
+          Mi Perfil
+        </a>
+      </nav>
 
-    <div class="sidebar-header">
-      <span class="logo">SCAD</span>
-    </div>
-
-    <nav class="sidebar-menu">
-
-      <a href="#" class="menu-item active">
-        Dashboard
-      </a>
-
-      <a href="reportes.html" class="menu-item">
-        Mis Reportes
-      </a>
-
-      <a href="comentarios.html" class="menu-item">
-        Comentarios
-      </a>
-
-      <a href="evidencias.html" class="menu-item">
-        Evidencias
-      </a>
-
-      <a href="notificaciones.html" class="menu-item">
-        Notificaciones
-      </a>
-
-      <a href="perfil-usuario.html" class="menu-item">
-        Mi Perfil
-      </a>
-
-    </nav>
-
-    <div class="sidebar-footer">
-      <button id="logoutBtn">
+      <div class="logout" id="logoutBtn">
+        <span class="material-icons-outlined">logout</span>
         Cerrar sesión
-      </button>
-    </div>
-
-  </aside>
-
-
-  <!-- ============================= -->
-  <!-- MAIN -->
-  <!-- ============================= -->
-
-  <main class="main">
-
-    <!-- TOPBAR -->
-
-    <header class="topbar">
-
-      <div>
-        <h2>Dashboard Usuario</h2>
-        <p class="subtitle">
-          Gestiona tus reportes y evidencias asignadas
-        </p>
       </div>
+    </aside>
 
-      <div class="user-info">
-        <span id="nombreUsuario"></span>
-      </div>
+    <!-- MAIN -->
+    <main class="main">
 
-    </header>
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="search">
+          <span class="material-icons-outlined">search</span>
+          <input type="text" placeholder="Buscar en SCAD..." />
+        </div>
+        <div class="top-actions">
+          <div class="notification">
+            <span class="material-icons-outlined">notifications</span>
+          </div>
+          <div class="user">
+            <div class="avatar">
+              <span class="material-icons-outlined">person</span>
+            </div>
+            <div style="display:flex;flex-direction:column;line-height:1.3;">
+              <span class="username" id="nombreUsuario">Usuario</span>
+              <span style="font-size:11px;color:#6b7280;" id="nombreEmpresa">Empresa</span>
+            </div>
+          </div>
+        </div>
+      </header>
 
+      <!-- CONTENT -->
+      <section class="content">
 
-    <!-- CARDS -->
+        <!-- WELCOME BANNER -->
+        <div class="welcome-banner">
+          <div>
+            <h3 id="welcomeNombre">Bienvenido, Auditor</h3>
+            <p id="welcomeEmpresa">Estás auditando los reportes de tu empresa asignada</p>
+          </div>
+          <span class="material-icons-outlined">verified_user</span>
+        </div>
 
-    <section class="cards">
+        <!-- HEADER -->
+        <div style="margin-bottom:32px;">
+          <h3 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:8px;">Dashboard Auditor</h3>
+          <p style="color:#64748b;font-size:14px;">Revisa los reportes y evidencias de la empresa asignada</p>
+        </div>
 
-      <div class="card">
-        <h3>Reportes Asignados</h3>
-        <p class="card-number" id="reportesAsignados">0</p>
-      </div>
+        <!-- CARDS -->
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">hourglass_empty</span>
+            </div>
+            <div>
+              <p>Reportes Pendientes</p>
+              <h3 id="reportesPendientes">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">check_circle</span>
+            </div>
+            <div>
+              <p>Reportes Aprobados</p>
+              <h3 id="reportesAprobados">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">cancel</span>
+            </div>
+            <div>
+              <p>Reportes Rechazados</p>
+              <h3 id="reportesRechazados">---</h3>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <span class="material-icons-outlined">notifications_active</span>
+            </div>
+            <div>
+              <p>Notificaciones Nuevas</p>
+              <h3 id="notificacionesNuevas">---</h3>
+            </div>
+          </div>
+        </div>
 
-      <div class="card">
-        <h3>Reportes Completados</h3>
-        <p class="card-number" id="reportesCompletados">0</p>
-      </div>
+        <!-- TABLA REPORTES -->
+        <div class="table-box">
+          <h3 style="font-size:16px;font-weight:600;margin-bottom:20px;">Reportes de la Empresa</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaReportes">
+              <tr>
+                <td colspan="5" style="text-align:center;padding:40px 20px;color:#999;">
+                  Cargando reportes...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="card">
-        <h3>Evidencias Subidas</h3>
-        <p class="card-number" id="evidenciasSubidas">0</p>
-      </div>
+      </section>
+    </main>
+  </div>
 
-      <div class="card">
-        <h3>Notificaciones Nuevas</h3>
-        <p class="card-number" id="notificacionesNuevas">0</p>
-      </div>
+  <div id="alertContainer" class="alert-container"></div>
 
-    </section>
-
-
-    <!-- TABLA -->
-
-    <section class="table-section">
-
-      <h3>Mis Reportes Recientes</h3>
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Empresa</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-
-        <tbody id="tablaReportes">
-          <!-- JS cargará los datos aquí -->
-        </tbody>
-
-      </table>
-
-    </section>
-
-
-  </main>
-
-</div>
-
-<script src="../../js/usuario-dashboard.js"></script>
-
+  <script src="../../js/user/dashboard.js"></script>
 </body>
 </html>

@@ -38,7 +38,8 @@ const historialRoutes         = require('./routes/historial.js');
 const notificacionesRoutes    = require('./routes/notificaciones.js');
 const reportesGeneradosRoutes = require('./routes/reportesGenerados.js');
 const residuosRoutes          = require('./routes/residuos.js');
-const auditoriasRoutes        = require('./routes/auditorias.js'); // ← NUEVO
+const auditoriasRoutes        = require('./routes/auditorias.js');
+const solicitudesRoutes       = require('./routes/solicitudes.js'); // ← NUEVO
 
 app.use('/api/usuarios',           usuariosRoutes);
 app.use('/api/empresas',           empresasRoutes);
@@ -49,7 +50,8 @@ app.use('/api/historial',          historialRoutes);
 app.use('/api/notificaciones',     notificacionesRoutes);
 app.use('/api/reportes-generados', reportesGeneradosRoutes);
 app.use('/api/residuos',           residuosRoutes);
-app.use('/api/auditorias',         auditoriasRoutes); // ← NUEVO
+app.use('/api/auditorias',         auditoriasRoutes);
+app.use('/api/solicitudes',        solicitudesRoutes); // ← NUEVO
 
 // Rutas HTML
 app.get('/', (req, res) => {

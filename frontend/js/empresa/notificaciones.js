@@ -34,7 +34,6 @@ function getBadgeLabel(tipo) {
   return map[tipo] || null;
 }
 
-// ── Fecha relativa ────────────────────────────────────────────────────────────
 function formatFecha(fechaStr) {
   if (!fechaStr) return '—';
   const fecha = new Date(fechaStr);
@@ -47,14 +46,13 @@ function formatFecha(fechaStr) {
   return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-// ── Alert toast ───────────────────────────────────────────────────────────────
 function mostrarAlerta(tipo, titulo, mensaje) {
   const container = document.getElementById('alertContainer');
   if (!container) return;
   const cfg = {
-    success: { bg: '#1B6B4F', color: '#fff',    icono: 'check_circle' },
-    danger:  { bg: '#fff',    color: '#dc2626',  icono: 'error',       border: '#fca5a5' },
-    info:    { bg: '#fff',    color: '#2563eb',  icono: 'info',        border: '#93c5fd' },
+    success: { bg: '#1B6B4F', color: '#fff',   icono: 'check_circle' },
+    danger:  { bg: '#fff',    color: '#dc2626', icono: 'error',       border: '#fca5a5' },
+    info:    { bg: '#fff',    color: '#2563eb', icono: 'info',        border: '#93c5fd' },
   }[tipo] || { bg: '#fff', color: '#2563eb', icono: 'info', border: '#93c5fd' };
 
   const d = document.createElement('div');
@@ -82,6 +80,112 @@ function mostrarAlerta(tipo, titulo, mensaje) {
     d.style.opacity    = '0';
     setTimeout(() => d.remove(), 300);
   }, 3500);
+}
+
+// ── Extraer solicitud_id del mensaje ─────────────────────────────────────────
+function extraerSolicitudId(msg = '') {
+  const match = msg.match(/solicitud[_\s#]+(\d+)/i) || msg.match(/#(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+// ── Extraer empresa_id del usuario logueado ───────────────────────────────────
+function getEmpresaId() {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+  return usuario.empresa_id || null;
+}
+
+// ── Animación de salida y eliminación del DOM ─────────────────────────────────
+async function animarYEliminar(notiId) {
+  const el = document.getElementById(`noti-${notiId}`);
+  if (el) {
+    el.style.transition = 'opacity .2s, transform .2s, max-height .25s, padding .25s';
+    el.style.opacity    = '0';
+    el.style.transform  = 'translateX(16px)';
+    el.style.maxHeight  = el.scrollHeight + 'px';
+    await new Promise(r => setTimeout(r, 30));
+    el.style.maxHeight     = '0';
+    el.style.paddingTop    = '0';
+    el.style.paddingBottom = '0';
+    await new Promise(r => setTimeout(r, 260));
+    el.remove();
+  }
+  todas = todas.filter(n => n.id !== notiId);
+  actualizarUI();
+}
+
+// ── Aceptar solicitud desde notificación ─────────────────────────────────────
+async function aceptarSolicitud(solicitudId, notiId, btn) {
+  const token     = localStorage.getItem('token');
+  const empresaId = getEmpresaId();
+  if (!empresaId || !solicitudId) {
+    mostrarAlerta('danger', 'Error', 'No se pudo identificar la empresa o la solicitud');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Aceptando...';
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/solicitudes/empresa/${empresaId}/solicitudes/${solicitudId}/aceptar`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      mostrarAlerta('success', 'Auditor aceptado', 'El auditor fue agregado a tu empresa correctamente');
+      await animarYEliminar(notiId);
+    } else if (res.status === 400 && data.mensaje?.includes('ya fue procesada')) {
+      // Solicitud ya atendida — quitar la notificación igual
+      mostrarAlerta('info', 'Ya procesada', 'Esta solicitud ya fue atendida anteriormente');
+      await animarYEliminar(notiId);
+    } else {
+      throw new Error(data.mensaje || 'Error al aceptar');
+    }
+
+  } catch (err) {
+    mostrarAlerta('danger', 'Error', err.message);
+    btn.disabled    = false;
+    btn.textContent = 'Aceptar';
+  }
+}
+
+// ── Rechazar solicitud desde notificación ────────────────────────────────────
+async function rechazarSolicitud(solicitudId, notiId, btn) {
+  const token     = localStorage.getItem('token');
+  const empresaId = getEmpresaId();
+  if (!empresaId || !solicitudId) {
+    mostrarAlerta('danger', 'Error', 'No se pudo identificar la empresa o la solicitud');
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Rechazando...';
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/solicitudes/empresa/${empresaId}/solicitudes/${solicitudId}/rechazar`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      mostrarAlerta('info', 'Solicitud rechazada', 'La solicitud fue rechazada');
+      await animarYEliminar(notiId);
+    } else if (res.status === 400 && data.mensaje?.includes('ya fue procesada')) {
+      mostrarAlerta('info', 'Ya procesada', 'Esta solicitud ya fue atendida anteriormente');
+      await animarYEliminar(notiId);
+    } else {
+      throw new Error(data.mensaje || 'Error al rechazar');
+    }
+
+  } catch (err) {
+    mostrarAlerta('danger', 'Error', err.message);
+    btn.disabled    = false;
+    btn.textContent = 'Rechazar';
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -150,16 +254,14 @@ function recargar() { cargarNotificaciones(); }
 
 // ── Actualizar UI ─────────────────────────────────────────────────────────────
 function actualizarUI() {
-  const total      = todas.length;
-  const noLeidas   = todas.filter(n => !n.leido).length;
+  const total       = todas.length;
+  const noLeidas    = todas.filter(n => !n.leido).length;
   const solicitudes = todas.filter(n => clasificar(n.mensaje) === 'solicitud').length;
 
-  // Stats
-  document.getElementById('statTotal').textContent      = total;
-  document.getElementById('statNoLeidas').textContent   = noLeidas;
+  document.getElementById('statTotal').textContent       = total;
+  document.getElementById('statNoLeidas').textContent    = noLeidas;
   document.getElementById('statSolicitudes').textContent = solicitudes;
 
-  // Conteos por filtro
   const conteos = { todas: total, 'no-leidas': noLeidas, solicitud: 0, aprobado: 0, rechazado: 0, revision: 0 };
   todas.forEach(n => {
     const t = clasificar(n.mensaje);
@@ -170,11 +272,9 @@ function actualizarUI() {
     if (el) el.textContent = v;
   });
 
-  // Botones globales
   document.getElementById('btnMarcarTodas').style.display   = noLeidas > 0 ? 'inline-flex' : 'none';
   document.getElementById('btnEliminarTodas').style.display = total    > 0 ? 'inline-flex' : 'none';
 
-  // Badge sidebar
   const badge = document.getElementById('notiCount');
   if (badge) { badge.textContent = noLeidas; badge.style.display = noLeidas > 0 ? 'inline-block' : 'none'; }
 
@@ -204,7 +304,7 @@ function renderFiltradas() {
 
   if (filtroActual === 'no-leidas') {
     lista = lista.filter(n => !n.leido);
-  } else if (!['todas'].includes(filtroActual)) {
+  } else if (filtroActual !== 'todas') {
     lista = lista.filter(n => clasificar(n.mensaje) === filtroActual);
   }
 
@@ -229,10 +329,36 @@ function renderFiltradas() {
   }
 
   document.getElementById('notiList').innerHTML = lista.map((n, i) => {
-    const tipo    = clasificar(n.mensaje);
-    const icono   = getIcono(tipo);
-    const badge   = getBadgeLabel(tipo);
-    const noLeida = !n.leido;
+    const tipo        = clasificar(n.mensaje);
+    const icono       = getIcono(tipo);
+    const badge       = getBadgeLabel(tipo);
+    const noLeida     = !n.leido;
+    const esSolicitud = tipo === 'solicitud';
+    const solicitudId = esSolicitud ? extraerSolicitudId(n.mensaje) : null;
+
+    // Limpiar emojis del mensaje para mostrar
+    const mensajeLimpio = n.mensaje.replace(/[\u{1F300}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[#*0-9]\uFE0F\u20E3/gu, '').trim();
+
+    const botonesAccion = (esSolicitud && solicitudId) ? `
+      <div class="noti-acciones-solicitud" style="display:flex;gap:8px;margin-top:10px;">
+        <button
+          onclick="aceptarSolicitud(${solicitudId}, ${n.id}, this)"
+          style="padding:6px 14px;background:#1B6B4F;color:#fff;border:none;border-radius:7px;
+                 font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                 display:flex;align-items:center;gap:5px;">
+          <span class="material-icons-outlined" style="font-size:14px;">check</span>
+          Aceptar
+        </button>
+        <button
+          onclick="rechazarSolicitud(${solicitudId}, ${n.id}, this)"
+          style="padding:6px 14px;background:#fff;color:#dc2626;border:1.5px solid #fca5a5;border-radius:7px;
+                 font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                 display:flex;align-items:center;gap:5px;">
+          <span class="material-icons-outlined" style="font-size:14px;">close</span>
+          Rechazar
+        </button>
+      </div>
+    ` : '';
 
     return `
       <li class="noti-item ${noLeida ? 'no-leida' : ''} tipo-${tipo}" id="noti-${n.id}"
@@ -241,7 +367,7 @@ function renderFiltradas() {
           <span class="material-icons-outlined">${icono}</span>
         </div>
         <div class="noti-content">
-          <p class="noti-mensaje">${n.mensaje}</p>
+          <p class="noti-mensaje">${mensajeLimpio}</p>
           <div class="noti-meta">
             <span class="noti-fecha">
               <span class="material-icons-outlined">schedule</span>
@@ -249,6 +375,7 @@ function renderFiltradas() {
             </span>
             ${badge ? `<span class="noti-badge ${tipo}">${badge}</span>` : ''}
           </div>
+          ${botonesAccion}
         </div>
         ${noLeida ? `<div class="unread-dot"></div>` : ''}
         <div class="noti-actions">
@@ -267,7 +394,7 @@ function renderFiltradas() {
 }
 
 // ── Acciones individuales ─────────────────────────────────────────────────────
-async function marcarLeida(id) {
+async function marcarLeida(id, actualizarVista = true) {
   const token = localStorage.getItem('token');
   try {
     const res = await fetch(`${API_BASE}/api/notificaciones/${id}/leida`, {
@@ -277,9 +404,9 @@ async function marcarLeida(id) {
     if (!res.ok) throw new Error();
     const idx = todas.findIndex(n => n.id === id);
     if (idx !== -1) todas[idx].leido = true;
-    actualizarUI();
+    if (actualizarVista) actualizarUI();
   } catch {
-    mostrarAlerta('danger', 'Error', 'No se pudo marcar como leída');
+    if (actualizarVista) mostrarAlerta('danger', 'Error', 'No se pudo marcar como leída');
   }
 }
 
@@ -287,15 +414,14 @@ async function eliminarNoti(id) {
   const token = localStorage.getItem('token');
   const el    = document.getElementById(`noti-${id}`);
 
-  // Animación de salida
   if (el) {
-    el.style.transition  = 'opacity .2s, transform .2s, max-height .25s, padding .25s';
-    el.style.opacity     = '0';
-    el.style.transform   = 'translateX(16px)';
-    el.style.maxHeight   = el.scrollHeight + 'px';
+    el.style.transition = 'opacity .2s, transform .2s, max-height .25s, padding .25s';
+    el.style.opacity    = '0';
+    el.style.transform  = 'translateX(16px)';
+    el.style.maxHeight  = el.scrollHeight + 'px';
     await new Promise(r => setTimeout(r, 30));
-    el.style.maxHeight   = '0';
-    el.style.paddingTop  = '0';
+    el.style.maxHeight     = '0';
+    el.style.paddingTop    = '0';
     el.style.paddingBottom = '0';
     await new Promise(r => setTimeout(r, 260));
   }
@@ -310,7 +436,10 @@ async function eliminarNoti(id) {
     actualizarUI();
   } catch {
     mostrarAlerta('danger', 'Error', 'No se pudo eliminar la notificación');
-    if (el) { el.style.opacity='1'; el.style.transform='none'; el.style.maxHeight=''; el.style.paddingTop=''; el.style.paddingBottom=''; }
+    if (el) {
+      el.style.opacity = '1'; el.style.transform = 'none';
+      el.style.maxHeight = ''; el.style.paddingTop = ''; el.style.paddingBottom = '';
+    }
   }
 }
 

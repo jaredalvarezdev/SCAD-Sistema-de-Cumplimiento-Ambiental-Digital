@@ -186,8 +186,8 @@ async function cargarReportes(token) {
           </td>
           <td>
             <div style="display:flex;gap:8px;justify-content:center;">
-              <button onclick="verDetalle(${r.id})" style="padding:7px 12px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:#374151;">
-                <span class="material-icons-outlined" style="font-size:15px;vertical-align:middle;">visibility</span> Ver
+              <button onclick="verDetalle(${r.id})" style="padding:6px 14px;background:#1B6B4F;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px;">
+                <span class="material-icons-outlined" style="font-size:15px;">visibility</span>Ver
               </button>
               ${puedeEliminar ? `
               <button onclick="abrirEliminar(${r.id})" style="padding:7px 12px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:#DC2626;">

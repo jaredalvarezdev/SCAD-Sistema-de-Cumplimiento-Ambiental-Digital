@@ -148,10 +148,9 @@ async function cargarReportes(token) {
           </td>
           <td>
             <a href="/pages/empresa/mis-reportes.html?id=${r.id}"
-              style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:#374151;text-decoration:none;transition:all 0.2s;"
-              onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
-              <span class="material-icons-outlined" style="font-size:15px;">open_in_new</span>
-              Ver reporte
+              style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1B6B4F;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;">
+              <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
+              Ver
             </a>
           </td>
         </tr>

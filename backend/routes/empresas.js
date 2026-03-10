@@ -12,6 +12,14 @@ router.get(
   empresasController.obtenerEstadisticasEmpresas
 );
 
+// ← NUEVO: Empresas disponibles para auditores (rol 3) — lista básica id+nombre
+router.get(
+  '/disponibles',
+  verificarToken,
+  verificarRol([1, 2, 3]),
+  empresasController.obtenerEmpresasDisponibles
+);
+
 // Obtener todas las empresas → solo admin
 router.get(
   '/',
@@ -24,7 +32,7 @@ router.get(
 router.get(
   '/:id',
   verificarToken,
-  verificarRol([1, 2]),
+  verificarRol([1, 2, 3]),
   empresasController.obtenerEmpresa
 );
 

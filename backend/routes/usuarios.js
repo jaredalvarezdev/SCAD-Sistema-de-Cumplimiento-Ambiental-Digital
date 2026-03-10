@@ -1,4 +1,3 @@
-// routes/usuarios.routes.js
 const express = require('express');
 const router = express.Router();
 const usuariosController = require('../controllers/usuariosController');
@@ -43,6 +42,10 @@ router.post('/cambiar', usuariosController.cambiarContrasena);
 
 // Obtener todos los usuarios (solo admin)
 router.get('/', verificarToken, verificarAdmin, usuariosController.obtenerUsuarios);
+
+// ← NUEVO: Obtener usuario por ID — usado por espera.html para polling
+// El propio usuario puede consultarse a sí mismo; admin puede consultar cualquiera
+router.get('/:id', verificarToken, usuariosController.obtenerUsuarioPorId);
 
 // Editar usuario (nombre, email, rol, activo, empresa)
 router.put('/:id', verificarToken, verificarAdmin, usuariosController.editarUsuario);
