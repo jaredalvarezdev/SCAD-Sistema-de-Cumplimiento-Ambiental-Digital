@@ -2,72 +2,106 @@ const API_BASE = "http://localhost:3000";
 
 document.addEventListener('DOMContentLoaded', async () => {
   const empresaSelect = document.getElementById('empresaSelect');
-  const empresaForm = document.getElementById('empresaForm');
-
-  const token = localStorage.getItem('token');
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+  const empresaForm   = document.getElementById('empresaForm');
+  const token         = localStorage.getItem('token');
+  const usuario       = JSON.parse(localStorage.getItem('usuario') || '{}');
 
   if (!token || !usuario.rol_id) {
-    window.location.href = '/login';
+    window.location.href = '/login.html';
     return;
   }
 
-  if (usuario.rol_id !== 3) {
-    if (usuario.rol_id === 1) window.location.href = '/pages/admin/admin-dashboard.html';
-    else if (usuario.rol_id === 2) window.location.href = '/pages/empresa/empresa-dashboard.html';
+  // Si ya tiene empresa asignada, no debe estar aquí
+  if (usuario.empresa_id) {
+    window.location.href = '/pages/usuario/usuario-dashboard.html';
     return;
   }
 
-  // Cargar empresas
+  if (usuario.rol_id === 1) { window.location.href = '/pages/admin/admin-dashboard.html'; return; }
+  if (usuario.rol_id === 2) { window.location.href = '/pages/empresa/empresa-dashboard.html'; return; }
+
+  // Cargar todas las empresas
   try {
-    const res = await fetch(`${API_BASE}/api/empresas/disponibles`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`${API_BASE}/api/empresas`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("Error al cargar empresas");
+    if (!res.ok) throw new Error('Error al cargar empresas');
 
-    const empresas = await res.json();
+    const resultado = await res.json();
+    // La API devuelve { data: [...] } o directamente el array
+    const empresas = Array.isArray(resultado) ? resultado : (resultado.data || []);
+
     if (empresas.length === 0) {
-      const option = document.createElement('option');
-      option.textContent = "No hay empresas disponibles";
-      option.disabled = true;
-      option.selected = true;
-      empresaSelect.appendChild(option);
+      const opt = document.createElement('option');
+      opt.textContent = 'No hay empresas disponibles';
+      opt.disabled = true;
+      opt.selected = true;
+      empresaSelect.appendChild(opt);
     } else {
+      // Opción por defecto
+      const def = document.createElement('option');
+      def.value = '';
+      def.textContent = '— Selecciona una empresa —';
+      def.disabled = true;
+      def.selected = true;
+      empresaSelect.appendChild(def);
+
       empresas.forEach(emp => {
-        const option = document.createElement('option');
-        option.value = emp.id;
-        option.textContent = emp.nombre;
-        empresaSelect.appendChild(option);
+        const opt = document.createElement('option');
+        opt.value = emp.id;
+        opt.textContent = emp.nombre;
+        empresaSelect.appendChild(opt);
       });
     }
-  } catch(err) {
+  } catch (err) {
     console.error(err);
+    empresaSelect.innerHTML = '<option disabled selected>Error al cargar empresas</option>';
   }
 
-  // Solicitar acceso
+  // Enviar solicitud
   empresaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const empresaId = empresaSelect.value;
     if (!empresaId) return;
 
+    const btn = empresaForm.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
     try {
-      await fetch(`${API_BASE}/api/solicitudes`, {
+      const res = await fetch(`${API_BASE}/api/solicitudes/empresa/${empresaId}/solicitar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ usuario_id: usuario.id, empresa_id: empresaId })
+          Authorization: `Bearer ${token}`
+        }
       });
 
-      // Guardar flag en localStorage para mostrar mensaje en espera.html
-      localStorage.setItem('solicitudEnviada', 'true');
+      const data = await res.json();
 
-      // Redirigir a pantalla de espera
+      if (res.status === 409) {
+        // Ya tiene solicitud pendiente → ir directo a espera
+        localStorage.setItem('solicitudEnviada', 'pendiente');
+        window.location.href = '/pages/usuario/espera.html';
+        return;
+      }
+
+      if (!res.ok) {
+        btn.disabled = false;
+        btn.textContent = 'Solicitar acceso';
+        alert(data.mensaje || 'Error al enviar solicitud');
+        return;
+      }
+
+      localStorage.setItem('solicitudEnviada', 'true');
       window.location.href = '/pages/usuario/espera.html';
-    } catch(err) {
+
+    } catch (err) {
       console.error(err);
+      btn.disabled = false;
+      btn.textContent = 'Solicitar acceso';
+      alert('Error de conexión');
     }
   });
 });

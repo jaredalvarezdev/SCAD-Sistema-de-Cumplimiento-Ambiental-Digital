@@ -1,6 +1,14 @@
 const supabase = require('../config/supabase');
 const { validarEvidenciaIA } = require('../services/IAevidencia');
-const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
+const { registrarHistorial } = require('./historialHelper');
+const { crearNotificacionInterna } = require('./notificacionesController'); // ← NUEVO
+
+/* ── Helper: obtener id del primer admin ── */
+const getAdminId = async () => {
+  const { data } = await supabase
+    .from('usuarios').select('id').eq('rol_id', 1).limit(1).single();
+  return data?.id || null;
+};
 
 /* Sanitizar nombre de archivo */
 function sanitizarNombre(nombre) {
@@ -33,7 +41,6 @@ const analizarYActualizar = async (evidenciaId, reporteId, buffer, nombreArchivo
 
     console.log(`[IA] Resultado: ${resultado.estado_cumplimiento} | Confianza: ${resultado.confianza}% | Nuevo estado reporte: ${resultado.nuevo_estado_reporte}`);
 
-    // Construir objeto JSON completo compatible con reportesGeneradosController
     const analisisJSON = JSON.stringify({
       tipo_documento:              resultado.tipo_documento       || 'No determinado',
       resumen:                     resultado.observacion          || '',
@@ -49,7 +56,7 @@ const analizarYActualizar = async (evidenciaId, reporteId, buffer, nombreArchivo
       confianza:                   resultado.confianza
     });
 
-    // 1. Actualizar la evidencia con el resultado de la IA (JSON completo)
+    // 1. Actualizar la evidencia con el resultado de la IA
     await supabase
       .from('evidencias')
       .update({
@@ -74,6 +81,23 @@ const analizarYActualizar = async (evidenciaId, reporteId, buffer, nombreArchivo
 
     console.log(`[IA] Reporte ${reporteId} actualizado → estado ${resultado.nuevo_estado_reporte}`);
 
+    // ← NUEVO: notificar al admin si la IA rechazó (estado_id = 4)
+    if (resultado.nuevo_estado_reporte === 4) {
+      const { data: reporte } = await supabase
+        .from('reportes')
+        .select('titulo, empresas(nombre)')
+        .eq('id', reporteId)
+        .single();
+
+      const adminId = await getAdminId();
+      if (adminId) {
+        const empresaNombre = reporte?.empresas?.nombre || 'una empresa';
+        const reporteTitulo = reporte?.titulo           || `#${reporteId}`;
+        await crearNotificacionInterna(adminId,
+          `La IA rechazó una evidencia del reporte "${reporteTitulo}" de ${empresaNombre}`);
+      }
+    }
+
   } catch (err) {
     console.error(`[IA] Error en análisis background de evidencia ${evidenciaId}:`, err.message);
   }
@@ -93,7 +117,6 @@ const subirEvidenciaArchivo = async (req, res) => {
       return res.status(400).json({ mensaje: 'Faltan campos: reporte_id y archivo' });
     }
 
-    // Verificar que el reporte existe y pertenece a la empresa
     const { data: reporte, error: errorReporte } = await supabase
       .from('reportes')
       .select('id, empresa_id, titulo')
@@ -108,7 +131,6 @@ const subirEvidenciaArchivo = async (req, res) => {
       return res.status(403).json({ mensaje: 'No puedes subir evidencia a este reporte' });
     }
 
-    // Sanitizar y subir a Supabase Storage
     const nombreSanitizado = sanitizarNombre(file.originalname);
     const rutaStorage = `reporte_${reporte_id}/${Date.now()}_${nombreSanitizado}`;
     const contentType = file.mimetype || 'application/octet-stream';
@@ -124,14 +146,12 @@ const subirEvidenciaArchivo = async (req, res) => {
       return res.status(400).json({ mensaje: 'Error al subir archivo: ' + uploadError.message });
     }
 
-    // Obtener URL pública
     const { data: urlData } = supabase.storage
       .from('evidencias')
       .getPublicUrl(rutaStorage);
 
     const urlArchivo = urlData.publicUrl;
 
-    // Guardar evidencia en BD
     const { data: evidencia, error: errorBD } = await supabase
       .from('evidencias')
       .insert([{
@@ -152,18 +172,15 @@ const subirEvidenciaArchivo = async (req, res) => {
 
     console.log(`[Upload] Evidencia guardada: ID ${evidencia.id}`);
 
-    // Responder inmediatamente al frontend (no esperar la IA)
     res.status(201).json({
       mensaje: 'Evidencia subida correctamente. Analizando con IA...',
       data: evidencia,
       ia_procesando: true
     });
 
-    // ← NUEVO: registrar en historial (después de responder para no bloquear)
     registrarHistorial(usuario_id, 'evidencias', 'subir', evidencia.id,
       `Se subió la evidencia "${file.originalname}" al reporte "${reporte.titulo}"`);
 
-    // Análisis IA en background (no bloquea la respuesta)
     analizarYActualizar(evidencia.id, reporte_id, file.buffer, file.originalname);
 
   } catch (error) {
@@ -196,7 +213,7 @@ const subirEvidencia = async (req, res) => {
     if (rol_id === 2 && reporte.empresa_id !== empresa_id)
       return res.status(403).json({ mensaje: 'No puedes subir evidencia a este reporte' });
 
-    let urlArchivo = ruta_archivo;
+    let urlArchivo   = ruta_archivo;
     let bufferParaIA = null;
 
     if (ruta_archivo.startsWith('data:')) {
@@ -241,11 +258,9 @@ const subirEvidencia = async (req, res) => {
       ia_procesando: true
     });
 
-    // ← NUEVO: registrar en historial
     registrarHistorial(usuario_id, 'evidencias', 'subir', evidencia.id,
       `Se subió la evidencia "${nombre_archivo}" al reporte "${reporte.titulo}"`);
 
-    // Análisis IA en background si hay buffer disponible
     if (bufferParaIA) {
       analizarYActualizar(evidencia.id, reporte_id, bufferParaIA, nombre_archivo);
     }
@@ -322,7 +337,6 @@ const eliminarEvidencia = async (req, res) => {
         return res.status(403).json({ mensaje: 'No tienes acceso a esta evidencia' });
     }
 
-    // Intentar eliminar del Storage también
     if (evidencia.ruta_archivo) {
       try {
         const match = evidencia.ruta_archivo.match(/\/object\/public\/evidencias\/(.+)$/);
@@ -337,7 +351,6 @@ const eliminarEvidencia = async (req, res) => {
     const { error } = await supabase.from('evidencias').delete().eq('id', id);
     if (error) return res.status(500).json({ mensaje: 'Error al eliminar la evidencia' });
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(usuario_id, 'evidencias', 'eliminar', parseInt(id),
       `Se eliminó la evidencia "${evidencia.nombre_archivo}"`);
 

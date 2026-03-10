@@ -3,7 +3,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
-const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
+const { registrarHistorial } = require('./historialHelper');
+const { crearNotificacionInterna } = require('./notificacionesHelper'); // ← CORREGIDO: era notificacionesController
+
+/* ── Helper: obtener id del primer admin ── */
+const getAdminId = async () => {
+  const { data } = await supabase
+    .from('usuarios').select('id').eq('rol_id', 1).limit(1).single();
+  return data?.id || null;
+};
 
 /* ---------------- REGISTRAR USUARIO + EMPRESA ---------------- */
 const registrarUsuario = async (req, res) => {
@@ -90,9 +98,17 @@ const registrarUsuario = async (req, res) => {
       return res.status(500).json({ mensaje: "Error al crear usuario: " + errorUsuario.message });
     }
 
-    // ← NUEVO: registrar en historial
+    // registrar en historial
     await registrarHistorial(nuevoUsuario[0].id, 'usuarios', 'crear', nuevoUsuario[0].id,
       `Se registró el usuario "${nombre}" (${email})`);
+
+    // notificar al admin
+    const rolesTexto = { 1: 'Admin', 2: 'Empresa', 3: 'Auditor' };
+    const adminId = await getAdminId();
+    if (adminId) {
+      await crearNotificacionInterna(adminId,
+        `Nuevo usuario registrado: ${nombre} se registró como ${rolesTexto[rol_id] || 'Usuario'}`);
+    }
 
     let mensajeFinal = "Usuario creado correctamente";
     if (rol_id === 2 && !empresa_id_original) {
@@ -226,6 +242,34 @@ const cambiarContrasena = async (req, res) => {
   }
 };
 
+/* ---------------- OBTENER USUARIO POR ID ---------------- */
+// Usado por espera.html para polling — detecta cuando empresa_id fue asignado al auditor
+const obtenerUsuarioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // El propio usuario puede consultarse; admin puede consultar cualquiera
+    if (req.user.rol_id !== 1 && req.user.id !== Number(id)) {
+      return res.status(403).json({ mensaje: 'No autorizado' });
+    }
+
+    const { data: usuario, error } = await supabase
+      .from('usuarios')
+      .select('id, nombre, email, rol_id, empresa_id, activo')
+      .eq('id', id)
+      .single();
+
+    if (error || !usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    res.json({ usuario });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: 'Error del servidor' });
+  }
+};
+
 /* ---------------- EDITAR USUARIO ---------------- */
 const editarUsuario = async (req, res) => {
   try {
@@ -250,7 +294,6 @@ const editarUsuario = async (req, res) => {
 
     if (error) return res.status(500).json({ mensaje: error.message });
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(req.user.id, 'usuarios', 'editar', parseInt(id),
       `Se editó el usuario "${nombre}" (${email})`);
 
@@ -271,7 +314,6 @@ const eliminarUsuario = async (req, res) => {
       return res.status(403).json({ mensaje: "Solo admins pueden eliminar usuarios" });
     }
 
-    // ← NUEVO: guardar nombre antes de borrar para el historial
     const { data: usuario } = await supabase
       .from('usuarios')
       .select('nombre, email')
@@ -301,7 +343,6 @@ const eliminarUsuario = async (req, res) => {
 
     if (errorUsuario) return res.status(500).json({ mensaje: 'Error al eliminar usuario' });
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(req.user.id, 'usuarios', 'eliminar', parseInt(id),
       `Se eliminó el usuario "${usuario?.nombre}" (${usuario?.email})`);
 
@@ -334,6 +375,7 @@ module.exports = {
   login,
   solicitarRecuperacion,
   cambiarContrasena,
+  obtenerUsuarioPorId,
   editarUsuario,
   eliminarUsuario,
   obtenerUsuarios

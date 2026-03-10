@@ -1,6 +1,14 @@
 const supabase = require('../config/supabase')
 const { validarReporteIA } = require('../services/deepCheckService')
 const { registrarHistorial } = require('./historialHelper')
+const { crearNotificacionInterna } = require('./notificacionesController') // ← NUEVO
+
+/* ── Helper: obtener id del primer admin ── */
+const getAdminId = async () => {
+  const { data } = await supabase
+    .from('usuarios').select('id').eq('rol_id', 1).limit(1).single()
+  return data?.id || null
+}
 
 const crearReporte = async (req, res) => {
   try {
@@ -38,7 +46,17 @@ const crearReporte = async (req, res) => {
 
     if (empresa_id) {
       await recalcularCumplimiento(empresa_id)
-}
+    }
+
+    // ← NUEVO: notificar al admin
+    const adminId = await getAdminId()
+    if (adminId) {
+      const { data: empresa } = await supabase
+        .from('empresas').select('nombre').eq('id', empresa_id).single()
+      await crearNotificacionInterna(adminId,
+        `Reporte enviado: ${empresa?.nombre || 'Una empresa'} envió el reporte "${titulo}"`)
+    }
+
     res.status(201).json({ mensaje: 'Reporte creado correctamente', analisis_ia: resultadoIA, data })
 
   } catch (error) {
@@ -139,7 +157,7 @@ const recalcularCumplimiento = async (empresa_id) => {
       .eq('empresa_id', empresa_id)
       .eq('estado_id', 3)
 
-    if (total === 0) return // sin reportes, no tocar el valor manual
+    if (total === 0) return
 
     const nivel = Math.round((aprobados / total) * 100)
 
@@ -183,7 +201,7 @@ const cambiarEstadoReporte = async (req, res) => {
 
     if (reporte.empresa_id) {
       await recalcularCumplimiento(reporte.empresa_id)
-}
+    }
 
     res.json({ mensaje: 'Estado del reporte actualizado', data })
 
@@ -223,7 +241,7 @@ const eliminarReporte = async (req, res) => {
 
     if (reporte.empresa_id) {
       await recalcularCumplimiento(reporte.empresa_id)
-}
+    }
 
     res.json({ mensaje: 'Reporte eliminado correctamente' })
 

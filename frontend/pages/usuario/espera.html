@@ -3,24 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Espera de aprobación | SCAD</title>
+  <title>Esperando aprobación | SCAD</title>
   <link rel="stylesheet" href="../../css/auth.css">
+  <style>
+    .status-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 32px 0 8px;
+    }
+    .status-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      animation: pulse 2s infinite;
+    }
+    .status-icon.pendiente { background: #fef3c7; color: #d97706; }
+    .status-icon.aceptado  { background: #d1fae5; color: #059669; }
+    .status-icon.rechazado { background: #fee2e2; color: #dc2626; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%       { transform: scale(1.07); opacity: .85; }
+    }
+    .status-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      text-align: center;
+    }
+    .status-msg {
+      font-size: 14px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.6;
+      max-width: 320px;
+    }
+    .polling-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+      animation: blink 1.4s infinite both;
+    }
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: .2; }
+      40%            { opacity: 1; }
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1.5px solid #cbd5e1;
+      color: #64748b;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .2s;
+    }
+    .btn-secondary:hover { border-color: #94a3b8; color: #475569; }
+  </style>
 </head>
 <body>
 
 <div class="container">
-
   <div class="left-panel">
     <div class="form-box">
 
       <div class="logo">SCAD</div>
-      <h1>Estado de Solicitud</h1>
 
-      <!-- Mensaje dinámico -->
-      <p id="mensajeEspera" class="subtitle"></p>
+      <div class="status-box" id="statusBox">
+        <div class="status-icon pendiente" id="statusIcon">⏳</div>
+        <div class="status-title" id="statusTitle">Solicitud enviada</div>
+        <p class="status-msg" id="statusMsg">
+          Tu solicitud fue enviada correctamente. El administrador de la empresa debe aprobar tu acceso.
+        </p>
+        <div class="polling-indicator" id="pollingIndicator">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <span>Verificando estado automáticamente…</span>
+        </div>
+      </div>
 
-      <div class="actions">
-        <button id="btnVolver" class="btn-primary">Cerrar sesión</button>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px;">
+        <button class="btn-secondary" id="btnRecargar">Verificar ahora</button>
+        <button class="btn-secondary" id="btnLogout">Cerrar sesión</button>
       </div>
 
     </div>
@@ -32,29 +113,89 @@
       <p>Sistema de Control Administrativo Digital</p>
     </div>
   </div>
-
 </div>
 
 <script>
-  const mensajeEl = document.getElementById('mensajeEspera');
+const API_BASE = 'http://localhost:3000';
+let intervalo   = null;
 
-  // Si viene desde selección de empresa
-  if (localStorage.getItem('solicitudEnviada') === 'true') {
-    mensajeEl.textContent = 
-      "Tu solicitud fue enviada correctamente. El cliente principal debe aprobar tu acceso.";
-    
-    localStorage.removeItem('solicitudEnviada');
-  } else {
-    mensajeEl.textContent = 
-      "Tu solicitud está en proceso de revisión. Debes esperar aprobación para continuar.";
+const statusIcon      = document.getElementById('statusIcon');
+const statusTitle     = document.getElementById('statusTitle');
+const statusMsg       = document.getElementById('statusMsg');
+const pollingIndicator = document.getElementById('pollingIndicator');
+
+async function verificarEstado() {
+  const token   = localStorage.getItem('token');
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+  if (!token) { window.location.href = '/login.html'; return; }
+
+  try {
+    // Pedimos los datos frescos del usuario desde la API
+    const res = await fetch(`${API_BASE}/api/usuarios/${usuario.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const user = data.usuario || data; // depende de cómo responde tu API
+
+    if (user.empresa_id) {
+      // ¡Fue aceptado! Actualizar localStorage y redirigir
+      clearInterval(intervalo);
+      pollingIndicator.style.display = 'none';
+
+      statusIcon.className  = 'status-icon aceptado';
+      statusIcon.textContent = '✅';
+      statusTitle.textContent = '¡Solicitud aceptada!';
+      statusMsg.textContent   = 'Tu acceso fue aprobado. Redirigiendo a tu panel…';
+
+      // Actualizar usuario en localStorage con empresa_id
+      localStorage.setItem('usuario', JSON.stringify({ ...usuario, empresa_id: user.empresa_id }));
+
+      setTimeout(() => {
+        window.location.href = '/pages/usuario/usuario-dashboard.html';
+      }, 2000);
+
+    }
+    // Si no tiene empresa_id, sigue esperando (no cambia nada)
+
+  } catch (err) {
+    console.warn('Error verificando estado:', err.message);
+  }
+}
+
+// Verificar cada 10 segundos
+intervalo = setInterval(verificarEstado, 10000);
+
+// Verificar al cargar también
+document.addEventListener('DOMContentLoaded', () => {
+  const token   = localStorage.getItem('token');
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+  if (!token || !usuario.id) {
+    window.location.href = '/login.html';
+    return;
   }
 
-  // Cerrar sesión
-  document.getElementById('btnVolver').addEventListener('click', () => {
+  // Si ya tiene empresa (recargó la página después de ser aceptado)
+  if (usuario.empresa_id) {
+    window.location.href = '/pages/usuario/usuario-dashboard.html';
+    return;
+  }
+
+  document.getElementById('btnRecargar').addEventListener('click', verificarEstado);
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    clearInterval(intervalo);
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
-    window.location.href = '/login';
+    window.location.href = '/login.html';
   });
+
+  // Primera verificación inmediata
+  verificarEstado();
+});
 </script>
 
 </body>

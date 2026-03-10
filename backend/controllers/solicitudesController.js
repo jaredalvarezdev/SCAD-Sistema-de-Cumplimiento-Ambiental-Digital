@@ -1,5 +1,5 @@
 const supabase = require('../config/supabase');
-const { crearNotificacionInterna } = require('./notificacionesController');
+const { crearNotificacionInterna } = require('./notificacionesHelper'); // ← CORREGIDO: era notificacionesController
 
 /* ---------------- LISTAR SOLICITUDES ---------------- */
 const listarSolicitudes = async (req, res) => {
@@ -83,7 +83,8 @@ const solicitarUnion = async (req, res) => {
       const nombreSolicitante = usuarioSolicitante?.nombre || usuarioSolicitante?.email || 'Un usuario';
       await crearNotificacionInterna(
         duenoEmpresa.id,
-        `📋 Solicitud de auditor: ${nombreSolicitante} desea unirse a tu empresa como auditor. Revisa las solicitudes pendientes.`
+        // ← solicitud #ID al final → lo lee notificaciones.js para mostrar botones Aceptar/Rechazar
+        `📋 Solicitud de auditor: ${nombreSolicitante} desea unirse a tu empresa como auditor. solicitud #${nuevaSolicitud.id}`
       );
     }
 
@@ -145,7 +146,7 @@ const aceptarSolicitud = async (req, res) => {
 
     await crearNotificacionInterna(
       solicitud.usuario_id,
-      `Solicitud aceptada: Tu solicitud para unirte a ${nombreEmpresa} como auditor fue aprobada. ¡Ya puedes acceder a sus reportes!`
+      `✅ Solicitud aceptada: Tu solicitud para unirte a ${nombreEmpresa} como auditor fue aprobada. ¡Ya puedes acceder a sus reportes!`
     );
 
     res.json({ mensaje: 'Solicitud aceptada correctamente' });
@@ -197,7 +198,7 @@ const rechazarSolicitud = async (req, res) => {
 
     await crearNotificacionInterna(
       solicitud.usuario_id,
-      `Solicitud rechazada: Tu solicitud para unirte a ${nombreEmpresa} como auditor no fue aprobada.`
+      `❌ Solicitud rechazada: Tu solicitud para unirte a ${nombreEmpresa} como auditor no fue aprobada.`
     );
 
     res.json({ mensaje: 'Solicitud rechazada correctamente' });

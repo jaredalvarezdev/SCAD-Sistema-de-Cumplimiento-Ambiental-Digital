@@ -1,5 +1,13 @@
 const supabase = require('../config/supabase');
-const { registrarHistorial } = require('./historialHelper'); // ← NUEVO
+const { registrarHistorial } = require('./historialHelper');
+const { crearNotificacionInterna } = require('./notificacionesController'); // ← NUEVO
+
+/* ── Helper: obtener id del primer admin ── */
+const getAdminId = async () => {
+  const { data } = await supabase
+    .from('usuarios').select('id').eq('rol_id', 1).limit(1).single();
+  return data?.id || null;
+};
 
 /* ---------------- OBTENER TODAS LAS EMPRESAS CON ESTADÍSTICAS ---------------- */
 const obtenerEmpresas = async (req, res) => {
@@ -50,10 +58,10 @@ const obtenerEstadisticasEmpresas = async (req, res) => {
     }
 
     res.json({
-      totalEmpresas: totalEmpresas || 0,
-      empresasActivas: empresasActivas || 0,
+      totalEmpresas:       totalEmpresas       || 0,
+      empresasActivas:     empresasActivas     || 0,
       empresasSuspendidas: empresasSuspendidas || 0,
-      promedioCumplimiento: promedioCumplimiento
+      promedioCumplimiento
     });
 
   } catch (err) {
@@ -99,13 +107,13 @@ const crearEmpresa = async (req, res) => {
       .from('empresas')
       .insert([{
         nombre,
-        rfc: rfc || null,
-        email: email || null,
-        telefono: telefono || null,
-        direccion: direccion || null,
-        ciudad: ciudad || null,
-        tipo_empresa: tipo_empresa || null,
-        estado: estado || 'activa',
+        rfc:                rfc               || null,
+        email:              email             || null,
+        telefono:           telefono          || null,
+        direccion:          direccion         || null,
+        ciudad:             ciudad            || null,
+        tipo_empresa:       tipo_empresa      || null,
+        estado:             estado            || 'activa',
         nivel_cumplimiento: nivel_cumplimiento || 0,
         creado_en: new Date()
       }])
@@ -113,9 +121,15 @@ const crearEmpresa = async (req, res) => {
 
     if (error) return res.status(500).json({ mensaje: error.message });
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(req.user.id, 'empresas', 'crear', data[0].id,
       `Se creó la empresa "${nombre}"`);
+
+    // ← NUEVO: notificar al admin
+    const adminId = await getAdminId();
+    if (adminId) {
+      await crearNotificacionInterna(adminId,
+        `Nueva empresa registrada: ${nombre} fue agregada al sistema`);
+    }
 
     res.status(201).json({ mensaje: "Empresa creada correctamente", data: data[0] });
   } catch (err) {
@@ -142,13 +156,13 @@ const editarEmpresa = async (req, res) => {
       .from('empresas')
       .update({
         nombre,
-        rfc: rfc || null,
-        email: email || null,
-        telefono: telefono || null,
-        direccion: direccion || null,
-        ciudad: ciudad || null,
-        tipo_empresa: tipo_empresa || null,
-        estado: estado || 'activa',
+        rfc:                rfc               || null,
+        email:              email             || null,
+        telefono:           telefono          || null,
+        direccion:          direccion         || null,
+        ciudad:             ciudad            || null,
+        tipo_empresa:       tipo_empresa      || null,
+        estado:             estado            || 'activa',
         nivel_cumplimiento: nivel_cumplimiento || 0
       })
       .eq('id', id)
@@ -158,7 +172,6 @@ const editarEmpresa = async (req, res) => {
 
     if (data.length === 0) return res.status(404).json({ mensaje: "Empresa no encontrada" });
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(req.user.id, 'empresas', 'editar', parseInt(id),
       `Se editó la empresa "${nombre}"`);
 
@@ -178,7 +191,6 @@ const eliminarEmpresa = async (req, res) => {
       return res.status(403).json({ mensaje: "Solo admins pueden eliminar empresas" });
     }
 
-    // ← NUEVO: guardar nombre antes de borrar para el historial
     const { data: empresa } = await supabase
       .from('empresas')
       .select('nombre')
@@ -197,9 +209,7 @@ const eliminarEmpresa = async (req, res) => {
 
     const usuarioIds = usuarios ? usuarios.map(u => u.id) : [];
 
-    // Si hay usuarios, eliminar sus reportes y datos asociados
     if (usuarioIds.length > 0) {
-      // Obtener reportes de estos usuarios
       const { data: reportes } = await supabase
         .from('reportes')
         .select('id')
@@ -207,46 +217,17 @@ const eliminarEmpresa = async (req, res) => {
 
       const reporteIds = reportes ? reportes.map(r => r.id) : [];
 
-      // Eliminar auditorías de reportes
       if (reporteIds.length > 0) {
-        await supabase
-          .from('auditorias')
-          .delete()
-          .in('reporte_id', reporteIds);
-
-        // Eliminar comentarios
-        await supabase
-          .from('comentarios')
-          .delete()
-          .in('reporte_id', reporteIds);
-
-        // Eliminar evidencias
-        await supabase
-          .from('evidencias')
-          .delete()
-          .in('reporte_id', reporteIds);
-
-        // Eliminar reportes
-        await supabase
-          .from('reportes')
-          .delete()
-          .in('id', reporteIds);
+        await supabase.from('auditorias').delete().in('reporte_id', reporteIds);
+        await supabase.from('comentarios').delete().in('reporte_id', reporteIds);
+        await supabase.from('evidencias').delete().in('reporte_id', reporteIds);
+        await supabase.from('reportes').delete().in('id', reporteIds);
       }
 
-      // Eliminar auditorías de usuarios
-      await supabase
-        .from('auditorias')
-        .delete()
-        .in('usuario_id', usuarioIds);
-
-      // Eliminar usuarios de la empresa
-      await supabase
-        .from('usuarios')
-        .delete()
-        .in('id', usuarioIds);
+      await supabase.from('auditorias').delete().in('usuario_id', usuarioIds);
+      await supabase.from('usuarios').delete().in('id', usuarioIds);
     }
 
-    // Finalmente eliminar la empresa
     const { error: errorEmpresa } = await supabase
       .from('empresas')
       .delete()
@@ -256,7 +237,6 @@ const eliminarEmpresa = async (req, res) => {
       return res.status(500).json({ mensaje: 'Error al eliminar empresa' });
     }
 
-    // ← NUEVO: registrar en historial
     await registrarHistorial(req.user.id, 'empresas', 'eliminar', parseInt(id),
       `Se eliminó la empresa "${empresa?.nombre}"`);
 

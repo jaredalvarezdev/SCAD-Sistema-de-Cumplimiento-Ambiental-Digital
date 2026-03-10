@@ -91,10 +91,22 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarAlerta("success", "Bienvenido", `Hola, ${data.user.nombre}`);
 
         setTimeout(() => {
-          const rol = data.user.rol_id;
-          if (rol === 1) window.location.href = '/admin-dashboard';
-          if (rol === 2) window.location.href = '/empresa-dashboard';
-          if (rol === 3) window.location.href = '/seleccion-empresa';
+          const rol       = data.user.rol_id;
+          const empresaId = data.user.empresa_id;
+
+          if (rol === 1) {
+            window.location.href = '/admin-dashboard';
+          } else if (rol === 2) {
+            window.location.href = '/empresa-dashboard';
+          } else if (rol === 3) {
+            // Si ya tiene empresa asignada → va a su dashboard de auditor
+            if (empresaId) {
+              window.location.href = '/pages/usuario/usuario-dashboard.html';
+            } else {
+              // Sin empresa → a seleccionar
+              window.location.href = '/seleccion-empresa';
+            }
+          }
         }, 1000);
 
       } catch (err) {
@@ -152,14 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
           submitBtn.disabled = false;
           return;
         }
-
-        // El backend espera los campos sueltos, no un objeto anidado
-        // empresa_nombre, empresa_rfc, empresa_direccion, empresa_telefono,
-        // empresa_ciudad, empresa_tipo ya vienen del form como campos sueltos — no hay que tocarlos
         formData.empresa_estado = 'activa';
-
       } else {
-        // Limpiar campos empresa si es solo usuario
         delete formData.empresa_nombre;
         delete formData.empresa_rfc;
         delete formData.empresa_telefono;
